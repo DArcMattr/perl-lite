@@ -148,7 +148,7 @@ function Module:ProfileChanged()
 	end
 end
 
---{{ textures & backdrops
+--{{{ textures & backdrops
 local classIconsBg = [[Interface\Glues\CharacterCreate\UI-CharacterCreate-Classes]] -- has black and some border around the image
 local classIconsAlpha = [[Interface\WorldStateFrame\Icons-Classes]] -- has transparency around the image
 
@@ -378,7 +378,7 @@ local PowerOverride = function(self, event, unit)
 end
 
 local PortraitPostUpdate3D = function(self, unit)
-	if self:GetModel() == "character\\worgen\\male\\worgenmale.m2" then
+	if self:GetModel() == [[character\worgen\male\worgenmale.m2]] then
 		self:SetCamera(1) -- male worgen face/full camera angles are swapped, for unknown reasons
 	else
 		self:SetCamera(0)
