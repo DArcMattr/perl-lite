@@ -1,0 +1,4 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+	<!-- Junk comment so I don't forget the comment syntax. :P -->
+	<Script file="Options.lua" />
+</Ui>

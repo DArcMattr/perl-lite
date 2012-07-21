@@ -1,0 +1,21 @@
+## Interface: 40300
+## Title: Perl Lite [Options]
+## Author: Morsker
+## Notes:
+## Version: @project-version@
+#@debug@
+## Version: DEV
+#@end-debug@
+
+## DefaultState: enabled
+## RequiredDeps: PerlLite
+## LoadOnDemand: 1
+
+#@no-lib-strip@
+libs\AceGUI-3.0\AceGUI-3.0.xml
+libs\AceGUI-3.0-SharedMediaWidgets\widget.xml
+libs\AceConfig-3.0\AceConfig-3.0.xml
+libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
+#@end-no-lib-strip@
+
+PerlLite_Options.xml

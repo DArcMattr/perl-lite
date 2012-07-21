@@ -1,0 +1,29 @@
+## Interface: 40300
+## Title: Perl Lite
+## Author: Morsker
+## Notes: A Perl layout with oUF.
+## Version: @project-version@
+#@debug@
+## Version: DEV
+#@end-debug@
+
+## DefaultState: enabled
+## OptionalDeps: !ClassColors, Ace3, LibWindow-1.1, Clique, oUF
+## SavedVariables: PerlLiteDB
+## X-SavedVariables: PerlLiteDB
+
+## X-SlashCmdList: /pl, /perl, /perllite
+
+#@no-lib-strip@
+libs\LibStub\LibStub.lua
+libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+libs\AceAddon-3.0\AceAddon-3.0.xml
+libs\AceConsole-3.0\AceConsole-3.0.xml
+libs\AceDB-3.0\AceDB-3.0.xml
+libs\AceEvent-3.0\AceEvent-3.0.xml
+libs\LibSharedMedia-3.0\lib.xml
+libs\LibWindow-1.1\LibWindow-1.1.lua
+oUF\oUF.xml
+#@end-no-lib-strip@
+
+PerlLite.xml

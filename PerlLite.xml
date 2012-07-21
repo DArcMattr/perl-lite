@@ -1,0 +1,10 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+	<!-- Junk comment so I don't forget the comment syntax. :P -->
+	<Script file="Core.lua" />
+	<Script file="Movable.lua" />
+	<Script file="Layout.lua" />
+
+	<Script file="elements\classicon.lua" />
+	<Script file="elements\level.lua" />
+	<Script file="elements\pvptimer.lua" />
+</Ui>
