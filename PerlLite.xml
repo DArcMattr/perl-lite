@@ -1,5 +1,6 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
 	<!-- Junk comment so I don't forget the comment syntax. :P -->
+	<Script file="Locales.lua" />
 	<Script file="Core.lua" />
 	<Script file="Movable.lua" />
 	<Script file="Layout.lua" />

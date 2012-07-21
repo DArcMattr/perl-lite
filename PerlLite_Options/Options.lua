@@ -10,6 +10,9 @@ local _coreAddonName = strmatch(_optionsAddonName, "^(.*)_Options$")
 local Core = LibStub("AceAddon-3.0"):GetAddon(_coreAddonName)
 local Module = Core:NewModule("Options")
 Core.Options = Module
+Module.L = LibStub("AceLocale-3.0"):GetLocale(_optionsAddonName)
+local LC = Core.L
+local LO = Module.L
 local profile
 --}}}
 --{{{ upvalues

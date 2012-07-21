@@ -13,6 +13,8 @@ _addonScope.oUF = _addonScope.oUF or oUF
 
 local Addon = LibStub("AceAddon-3.0"):NewAddon(_addonName, "AceEvent-3.0", "AceConsole-3.0")
 _G[_addonName] = Addon
+local L = LibStub("AceLocale-3.0"):GetLocale(_addonName)
+Addon.L = L
 Addon.oUF = _addonScope.oUF; assert(Addon.oUF, _addonName .. " was unable to locate oUF.")
 Addon.path = [[Interface\Addons\]].._addonName..[[\]]
 Addon.texturePath = Addon.path..[[textures\]]

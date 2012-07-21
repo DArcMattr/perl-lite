@@ -9,6 +9,7 @@ local _addonName = ...
 local Core = LibStub("AceAddon-3.0"):GetAddon(_addonName)
 local Module = Core:NewModule("Layout", "AceEvent-3.0")
 Core.Layout = Module
+local L = Core.L
 local oUF
 local profile
 --}}}

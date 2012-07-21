@@ -11,6 +11,7 @@ local _addonName = ...
 local Core = LibStub("AceAddon-3.0"):GetAddon(_addonName)
 local Module = Core:NewModule("Movable", "AceEvent-3.0")
 Core.Movable = Module
+local L = Core.L
 local LibWin = LibStub("LibWindow-1.1")
 local FIXME_OPTIONS_CATEGORY = select(2, GetAddOnInfo(_addonName)).." - Positions"
 local profile
