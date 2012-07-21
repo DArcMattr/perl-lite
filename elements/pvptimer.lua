@@ -12,15 +12,15 @@ local AnimTimerFrame = AnimTimerFrame
 local CreateFrame = CreateFrame
 local GetPVPTimer = GetPVPTimer
 local IsPVPTimerRunning = IsPVPTimerRunning
-local UnitIsPvP = UnitIsPvP
+local UnitIsPVP = UnitIsPVP
 
 local animGroup
 local registry = {}
 local f
 
 local Update = function(self)
-	-- We need to test both conditions, because UnitIsPvP goes nil a few seconds before IsPvPTimerRunning does.
-	-- We don't want to display without the icons based on UnitIsPvP.
+	-- We need to test both conditions, because UnitIsPVP goes nil a few seconds before IsPvPTimerRunning does.
+	-- We don't want to display without the icons based on UnitIsPVP.
 	if IsPVPTimerRunning() and UnitIsPVP(self.unit) then
 		local tmMillisec = GetPVPTimer()
 		local tmSec = floor(tmMillisec / 1000)
