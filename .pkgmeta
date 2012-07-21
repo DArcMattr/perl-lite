@@ -34,7 +34,7 @@ externals:
     libs/LibWindow-1.1:
         url: svn://svn.wowace.com/wow/libwindow-1-1/mainline/trunk/LibWindow-1.1
         tag: latest
-    oUF:
+    libs/oUF:
         url: git://github.com/haste/oUF.git
         tag: 1.5.16
     PerlLite_Options/libs/AceGUI-3.0:
