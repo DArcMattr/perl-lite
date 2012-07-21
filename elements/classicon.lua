@@ -37,7 +37,6 @@ local Enable = function(self)
 		classIcon.ForceUpdate = ForceUpdate
 
 		if not classIcon:GetTexture() then
-			print("classIcon w/ no texture")
 			classIcon:SetTexture([[Interface\Glues\CharacterCreate\UI-CharacterCreate-Classes]])
 		end
 		classIcon:SetTexCoord(noClassCoords[1], noClassCoords[2], noClassCoords[3], noClassCoords[4])
