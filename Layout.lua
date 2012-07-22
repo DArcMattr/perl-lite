@@ -182,7 +182,7 @@ local function formatNumberAndUnits(fontString, val, maxVal)
 	-- I'm not happy with how similar this looks to XPerl_SetValuedText, but there's
 	-- no other way to do it. I could throw the :SetFormattedText optimization out and
 	-- use tags, but that's a silly thing to do just to make the function look different.
-	-- 
+	--
 	-- Regardless. It recognizes 3 sizes of numbers: 1-5 digits, 6 digits, and 7+
 	-- digits, which I'll refer to as "flat", "K", and "M" formats. So there are 3 * 3
 	-- = 9 combinations of formats for value / maxValue pairs, but really only 6 because
@@ -705,7 +705,7 @@ end
 
 local Layout = function(self, initial)
 	local c = self.styleConf
-	
+
 	-- Alphas. XPerl is weird about this. Nested frames get an alpha that combines with the main one, except for the Player frame.
 	local alpha = c.alpha
 	self:SetAlpha(alpha / 255)
@@ -765,7 +765,7 @@ local Layout = function(self, initial)
 		attach(self, "StatsFrame", "TOPLEFT", "NameFrame", "BOTTOMLEFT", 0, -c.statsTopPadding)
 	end
 	self:SetSize(width, height)
-	
+
 	LayoutRange(self, c, initial)
 	LayoutPvPIcon(self, c, initial)
 	LayoutClassIcon(self, c, initial)

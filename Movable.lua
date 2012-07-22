@@ -1,7 +1,7 @@
 --[[-------------------------------------------------------------------------
 	This is derived from oUF_MovableFrames by haste:
 	http://www.wowinterface.com/downloads/info15425-oUFMovableFrames.html
-	
+
 	Honestly there isn't much left except getBackdrop(). This is more of a
 	front-end to LibWindow-1.1 now, except I like the backdrops and kept them.
 ---------------------------------------------------------------------------]]

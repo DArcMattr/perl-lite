@@ -2,7 +2,7 @@
 	Level module for oUF
 	Copyright (C) 2012  Morsk
 	All Rights Reserved.
-	
+
 	This is a FontString colored by target level.
 	A skull texture will be generated with a skull icon for enemies of unknown levels.
 ---------------------------------------------------------------------------]]
