@@ -74,15 +74,13 @@ local basicStyle = {
 	nameW = 160,
 	nameH = 24,
 	statsW = 160,
-	statsH = 40,
-	nameStatsGap = 2,
+	statsTopPadding = -2,
 	statTagWSpace = 35,
 	statTagW = 50,
 	statTagH = 12,
 	healthH = 20,
 	powerH = 10,
-	leftPortraitXAdjust = -3,
-	rightPortraitXAdjust = 2,
+	portraitPadding = -3,
 }
 local stylePrototype = {
 	player = {
@@ -106,10 +104,9 @@ local stylePrototype = {
 		pvpIconSize = 24,
 		nameW = 106,
 		statsW = 142,
-		statsH = 41,
-		nameStatsGap = 3,
+		statsTopPadding = -3,
 		healthH = 21,
-		leftPortraitXAdjust = -2,
+		portraitPadding = -2,
 	},
 }
 --}}}
@@ -594,7 +591,7 @@ local function LayoutLevel(self, c, initial)
 		end
 		self.LevelFrame:ClearAllPoints()
 		if specialLevelFrame then
-			self.LevelFrame:SetSize(30, c.statsH)
+			self.LevelFrame:SetSize(30, c.healthH + c.powerH + 10)
 		else
 			self.LevelFrame:SetSize(27, 22)
 		end
@@ -695,7 +692,7 @@ local function LayoutNameAndStats(self, c, initial)
 	self.NameFrame:SetSize(c.nameW, c.nameH)
 
 	self.StatsFrame:ClearAllPoints()
-	self.StatsFrame:SetSize(c.statsW, c.statsH)
+	self.StatsFrame:SetSize(c.statsW, c.healthH + c.powerH + 10)
 
 	UpdateBarTextures(self.Health)
 	self.Health:SetHeight(c.healthH)
@@ -722,12 +719,9 @@ local Layout = function(self, initial)
 	LayoutPortrait(self, c, initial)
 	LayoutLevel(self, c, initial)
 
-	-- Basic Sizes. Always done the same way.
-	local width = max(c.nameW, c.statsW) + (self.Portrait and c.portraitW or 0)
-	local height = c.nameH + c.statsH
-	self:SetSize(width, height)
-
 	-- 4 basic layouts.
+	local width
+	local height = max(c.portrait and c.portraitH or 0, c.nameH + (c.healthH + c.powerH + 10) + c.statsTopPadding)
 	if c.embedLevelAndClassIcon and (c.level or c.classIcon) then
 		if c.portrait then
 			-- "group" frame w/ portrait
@@ -735,26 +729,30 @@ local Layout = function(self, initial)
 				attach(self, "LevelFrame", "TOPLEFT", nil, "TOPLEFT", 0, 0)
 				attach(self, "PortraitFrame", "TOPLEFT", "LevelFrame", "TOPRIGHT", -2, 0)
 			else
-				attach(self, "PortraitFrame", "TOPLEFT", nil, "TOPLEFT", 25, 0) -- 27 - 2
+				attach(self, "PortraitFrame", "TOPLEFT", nil, "TOPLEFT", 27 - 2, 0)
 			end
-			attach(self, "NameFrame", "TOPLEFT", "PortraitFrame", "TOPRIGHT", c.leftPortraitXAdjust, 0, c.rightPortraitXAdjust)
-			attach(self, "StatsFrame", "TOPLEFT", "NameFrame", "BOTTOMLEFT", 0, c.nameStatsGap)
+			attach(self, "NameFrame", "TOPLEFT", "PortraitFrame", "TOPRIGHT", c.portraitPadding, 0)
+			attach(self, "StatsFrame", "TOPLEFT", "NameFrame", "BOTTOMLEFT", 0, -c.statsTopPadding)
+			width = 27 + c.portraitW - 2 + max(c.nameW, c.statsW) + c.portraitPadding
 			self.corner = self.PortraitFrame
 		else
 			-- "group" frame w/o portrait. This has the distinctive embedded level frame.
 			attach(self, "NameFrame", "TOPLEFT", nil, "TOPLEFT", 0, 0)
-			attach(self, "LevelFrame", "TOPLEFT", "NameFrame", "BOTTOMLEFT", 0, c.nameStatsGap)
+			attach(self, "LevelFrame", "TOPLEFT", "NameFrame", "BOTTOMLEFT", 0, -c.statsTopPadding)
 			attach(self, "StatsFrame", "TOPLEFT", "LevelFrame", "TOPRIGHT", -2, 0)
+			width = max(c.nameW, 30 + c.statsW - 2)
 			self.corner = self.LevelFrame
 		end
 	else
+		width = max(c.nameW, c.statsW)
 		if c.portrait then
 			-- "standard" frame w/ portrait, like player & target.
 			attach(self, "PortraitFrame", "TOPLEFT", nil, "TOPLEFT", 0, 0)
-			attach(self, "NameFrame", "TOPLEFT", "PortraitFrame", "TOPRIGHT", c.leftPortraitXAdjust, 0, c.rightPortraitXAdjust)
+			attach(self, "NameFrame", "TOPLEFT", "PortraitFrame", "TOPRIGHT", c.portraitPadding, 0)
 			if c.level then
 				attach(self, "LevelFrame", "TOPRIGHT", "PortraitFrame", "TOPLEFT", 2, 0)
 			end
+			width = width + c.portraitW + c.portraitPadding
 			self.corner = self.PortraitFrame
 		else
 			-- "standard" frame w/o portrait, like the default targettarget
@@ -764,8 +762,9 @@ local Layout = function(self, initial)
 			end
 			self.corner = self.StatsFrame
 		end
-		attach(self, "StatsFrame", "TOPLEFT", "NameFrame", "BOTTOMLEFT", 0, c.nameStatsGap)
+		attach(self, "StatsFrame", "TOPLEFT", "NameFrame", "BOTTOMLEFT", 0, -c.statsTopPadding)
 	end
+	self:SetSize(width, height)
 	
 	LayoutRange(self, c, initial)
 	LayoutPvPIcon(self, c, initial)

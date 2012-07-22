@@ -156,16 +156,11 @@ do --{{{ Module:MakeSectionArgs()
 		name = "Stats Width",
 		min = 120, max = 200, step = 1,
 	}
-	-- statsH = 40,
-	local statsH = { order = 20,
+	-- 20 removed
+	-- statsTopPadding = -2,
+	local statsTopPadding = { order = 21,
 		type = "range",
-		name = "Stats Height",
-		min = 20, max = 60, step = 1,
-	}
-	-- nameStatsGap = 2,
-	local nameStatsGap = { order = 21,
-		type = "range",
-		name = "Name-Stats Gap",
+		name = "Stats Top Padding",
 		min = -10, max = 10, step = 1,
 	}
 	-- statTagWSpace = 35,
@@ -201,16 +196,10 @@ do --{{{ Module:MakeSectionArgs()
 		min = 0, max = 50, step = 1,
 	}
 	-- 27 was removed
-	-- leftPortraitXAdjust = -3,
-	local leftPortraitXAdjust = { order = 28,
+	-- portraitPadding = -3,
+	local portraitPadding = { order = 28,
 		type = "range",
-		name = "Left Portrait X Adjust",
-		min = -20, max = 20, step = 1,
-	}
-	-- rightPortraitXAdjust = 2,
-	local rightPortraitXAdjust = { order = 29,
-		type = "range",
-		name = "Right Portrait X Adjust",
+		name = "Portrait Padding",
 		min = -20, max = 20, step = 1,
 	}
 
@@ -233,16 +222,14 @@ do --{{{ Module:MakeSectionArgs()
 		pvpTimer = pvpTimer,
 		nameW = nameW,
 		nameH = nameH,
-		-- statsW = statsW,
-		-- statsH = statsH,
-		nameStatsGap = nameStatsGap,
+		statsW = statsW,
+		statsTopPadding = statsTopPadding,
 		statTagWSpace = statTagWSpace,
-		statTagW = statTagW,
-		statTagH = statTagH,
+		-- statTagW = statTagW,
+		-- statTagH = statTagH,
 		healthH = healthH,
 		powerH = powerH,
-		leftPortraitXAdjust = leftPortraitXAdjust,
-		rightPortraitXAdjust = rightPortraitXAdjust,
+		portraitPadding = portraitPadding,
 	}
 
 	function Module:MakeSectionArgs()
