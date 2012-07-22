@@ -235,7 +235,7 @@ do --{{{ Module:MakeSectionArgs()
 	function Module:MakeSectionArgs()
 		return section
 	end
-	
+
 	function Module:MakeSection(order, name)
 		local t = {
 			type = "group",
