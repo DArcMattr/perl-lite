@@ -226,6 +226,11 @@ do --{{{ Module:MakeSectionArgs()
 		name = "Power Font Size",
 		min = 8, max = 18, step = 1,
 	}
+	-- nameLeft = false,
+	local nameLeft = { order = 33,
+		type = "toggle",
+		name = "Name-on-Left",
+	}
 
 	local section = {
 		-- scale = scale,
@@ -258,6 +263,7 @@ do --{{{ Module:MakeSectionArgs()
 		tagFontSize = tagFontSize,
 		healthFontSize = healthFontSize,
 		powerFontSize = powerFontSize,
+		nameLeft = nameLeft,
 	}
 
 	function Module:MakeSectionArgs()

@@ -74,6 +74,7 @@ local basicStyle = {
 	nameW = 160,
 	nameH = 24,
 	nameFontSize = 12,
+	nameLeft = false,
 	statsW = 160,
 	statsTopPadding = -2,
 	statTagWSpace = 35,
@@ -459,7 +460,6 @@ local function DoNameFrame(unitFrame, unit, isSingle)
 
 	local Name = NameFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	unitFrame.Name = Name
-	Name:SetPoint("TOPLEFT", NameFrame, 0, 0)
 	Name:SetPoint("BOTTOMRIGHT", NameFrame, 0, 1)
 	Name:SetTextColor(1, 1, 1)
 	unitFrame:Tag(Name, "[name]")
@@ -690,6 +690,13 @@ local function LayoutNameAndStats(self, c, initial)
 	self.NameFrame:ClearAllPoints()
 	self.NameFrame:SetSize(c.nameW, c.nameH)
 	self.Name:SetFont(GameFontNormal:GetFont(), c.nameFontSize)
+	if c.nameLeft then
+		self.Name:SetPoint("TOPLEFT", 6, 0)
+		self.Name:SetJustifyH("LEFT")
+	else
+		self.Name:SetPoint("TOPLEFT")
+		self.Name:SetJustifyH("CENTER")
+	end
 
 	self.StatsFrame:ClearAllPoints()
 	self.StatsFrame:SetSize(c.statsW, c.healthH + c.powerH + 10)
