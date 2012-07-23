@@ -583,6 +583,7 @@ end
 
 local function LayoutLevel(self, c, initial)
 	local specialLevelFrame = c.embedLevelAndClassIcon and (c.level or c.classIcon) and not c.portrait
+	-- LevelFrame
 	if c.level or specialLevelFrame then
 		if not self.LevelFrame then
 			self.LevelFrame = CreateFrame("Frame", nil, self)
@@ -596,9 +597,10 @@ local function LayoutLevel(self, c, initial)
 			self.LevelFrame:SetSize(27, 22)
 		end
 		self.LevelFrame:Show()
-	else
+	elseif self.LevelFrame then
 		self.LevelFrame:Hide()
 	end
+	-- Level
 	if c.level then
 		if not self.Level then
 			self.Level = self.LevelFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -615,10 +617,8 @@ local function LayoutLevel(self, c, initial)
 			self.Level:SetPoint("TOPLEFT")
 			self.Level:SetPoint("BOTTOMRIGHT")
 		end
-		self.Level:Show()
-	elseif self.LevelFrame then
+	elseif self.Level then
 		self:DisableElement("Level")
-		self.Level:Hide()
 	end
 end
 
