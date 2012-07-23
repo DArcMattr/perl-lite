@@ -260,6 +260,7 @@ local HealthOverride = function(self, event, unit, powerType)
 		local react = UnitReaction(unit, "player")
 		-- note: UnitSelectionColor is a possible alternative to UnitReaction
 		nameColor = self.colors.reaction[react]
+		if not nameColor then error("invalid UnitReaction '"..(react or "nil").."' for unit '"..unit.."'") end
 	end
 	name:SetTextColor(nameColor[1], nameColor[2], nameColor[3])
 
