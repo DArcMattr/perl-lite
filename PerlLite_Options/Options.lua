@@ -242,6 +242,32 @@ do --{{{ Module:MakeSectionArgs()
 		type = "toggle",
 		name = "Name-on-Left",
 	}
+	-- raidIcon = false,
+	local raidIcon = { order = 34,
+		type = "select",
+		name = "Raid Icon",
+		values = { ["false"]="None", left="Left", right="Right" },
+		get = generic_get_style_or_false,
+		set = generic_set_style_or_false,
+	}
+	-- raidIconSize = 16,
+	local raidIconSize = { order = 35,
+		type = "range",
+		name = "Raid Icon Size",
+		min = 10, max = 35, step = 1,
+	}
+	-- raidIconInset = 5,
+	local raidIconInset = { order = 36,
+		type = "range",
+		name = "Raid Icon Inset",
+		min = 0, max = 15, step = 1,
+	}
+	-- raidIconY = 12,
+	local raidIconY = { order = 37,
+		type = "range",
+		name = "Raid Icon Y",
+		min = -20, max = 20, step = 1,
+	}
 
 	local section = {
 		-- scale = scale,
@@ -276,6 +302,10 @@ do --{{{ Module:MakeSectionArgs()
 		healthFontSize = healthFontSize,
 		powerFontSize = powerFontSize,
 		nameLeft = nameLeft,
+		raidIcon = raidIcon,
+		raidIconSize = raidIconSize,
+		raidIconInset = raidIconInset,
+		raidIconY = raidIconY,
 	}
 
 	function Module:MakeSectionArgs()

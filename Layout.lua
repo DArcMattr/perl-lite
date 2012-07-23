@@ -72,6 +72,10 @@ local basicStyle = {
 	pvpIconSize = 26,
 	pvpIconInset = 7,
 	pvpTimer = false,
+	raidIcon = false,
+	raidIconSize = 16,
+	raidIconInset = 5,
+	raidIconY = 9,
 	nameW = 160,
 	nameH = 24,
 	nameFontSize = 12,
@@ -114,10 +118,12 @@ local stylePrototype = {
 		leftToRight = false,
 		eliteType = true,
 		npcRace = true,
+		raidIcon = "right",
 	},
 	targettarget = {
 		level = false,
 		classIcon = false,
+		raidIcon = "right",
 	},
 	party = {
 		rangeAlphaCoef = 0.5,
@@ -540,6 +546,24 @@ local function LayoutPvPIcon(self, c, initial)
 	end
 end
 
+local function LayoutRaidIcon(self, c, initial)
+	if c.raidIcon then
+		if not self.RaidIcon then
+			self.RaidIcon = self.NameFrame:CreateTexture(nil, "ARTWORK")
+		end
+		if not initial then self:EnableElement("RaidIcon") end
+		self.RaidIcon:SetSize(c.raidIconSize, c.raidIconSize)
+		if c.raidIcon == "left" then
+			self.RaidIcon:SetPoint("CENTER", self.NameFrame, "LEFT", c.raidIconInset, c.raidIconY)
+		else
+			self.RaidIcon:SetPoint("CENTER", self.NameFrame, "RIGHT", -c.raidIconInset, c.raidIconY)
+		end
+	elseif self.RaidIcon then
+		self:DisableElement("RaidIcon")
+		self.RaidIcon:Hide()
+	end
+end
+
 local function LayoutRange(self, c, initial)
 	if c.rangeAlphaCoef then
 		self.Range = self.Range or {}
@@ -797,6 +821,7 @@ local Layout = function(self, initial)
 
 	LayoutRange(self, c, initial)
 	LayoutPvPIcon(self, c, initial)
+	LayoutRaidIcon(self, c, initial)
 	LayoutClassIcon(self, c, initial)
 	LayoutEliteFrame(self, c, initial)
 	LayoutRaceFrame(self, c, initial)
