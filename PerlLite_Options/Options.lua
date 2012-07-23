@@ -305,6 +305,7 @@ do --{{{ Module:MakeSectionArgs()
 	section.nameLeft = nameLeft
 	MakeIconSettings(section, "raidIcon", "Raid Icon")
 	MakeIconSettings(section, "leaderIcon", "Leader Icon")
+	MakeIconSettings(section, "masterLooterIcon", "Master Looter Icon")
 
 	function Module:MakeSectionArgs()
 		return section

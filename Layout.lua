@@ -81,6 +81,10 @@ local basicStyle = {
 	leaderIconSize = 16,
 	leaderIconX = 0,
 	leaderIconY = -1,
+	masterLooterIcon = false,
+	masterLooterIconSize = 16,
+	masterLooterIconX = 20,
+	masterLooterIconY = -1,
 	nameW = 160,
 	nameH = 24,
 	nameFontSize = 12,
@@ -104,6 +108,7 @@ local stylePrototype = {
 		pvpIconSize = 30,
 		pvpTimer = true,
 		leaderIcon = "TOP",
+		masterLooterIcon = "TOP",
 	},
 	pet = {
 		nestedAlpha = false,
@@ -126,6 +131,7 @@ local stylePrototype = {
 		npcRace = true,
 		raidIcon = "RIGHT",
 		leaderIcon = "TOP",
+		masterLooterIcon = "TOP",
 	},
 	targettarget = {
 		level = false,
@@ -140,6 +146,8 @@ local stylePrototype = {
 		pvpIconX = -7,
 		leaderIcon = "TOPLEFT",
 		leaderIconX = 18,
+		masterLooterIcon = "TOPLEFT",
+		masterLooterIconX = 33,
 		nameW = 106,
 		statsW = 142,
 		statsTopPadding = -3,
@@ -580,6 +588,20 @@ local function LayoutLeaderIcon(self, c, initial)
 	end
 end
 
+local function LayoutMasterLooterIcon(self, c, initial)
+	if c.masterLooterIcon then
+		if not self.MasterLooter then
+			self.MasterLooter = self.NameFrame:CreateTexture(nil, "ARTWORK")
+		end
+		if not initial then self:EnableElement("MasterLooter") end
+		self.MasterLooter:SetSize(c.masterLooterIconSize, c.masterLooterIconSize)
+		self.MasterLooter:SetPoint("CENTER", self.NameFrame, c.masterLooterIcon, c.masterLooterIconX, c.masterLooterIconY)
+	elseif self.MasterLooter then
+		self:DisableElement("MasterLooter")
+		self.MasterLooter:Hide()
+	end
+end
+
 local function LayoutRange(self, c, initial)
 	if c.rangeAlphaCoef then
 		self.Range = self.Range or {}
@@ -839,6 +861,7 @@ local Layout = function(self, initial)
 	LayoutPvPIcon(self, c, initial)
 	LayoutRaidIcon(self, c, initial)
 	LayoutLeaderIcon(self, c, initial)
+	LayoutMasterLooterIcon(self, c, initial)
 	LayoutClassIcon(self, c, initial)
 	LayoutEliteFrame(self, c, initial)
 	LayoutRaceFrame(self, c, initial)
