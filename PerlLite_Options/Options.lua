@@ -202,6 +202,30 @@ do --{{{ Module:MakeSectionArgs()
 		name = "Portrait Padding",
 		min = -20, max = 20, step = 1,
 	}
+	-- nameFontSize = 12,
+	local nameFontSize = { order = 29,
+		type = "range",
+		name = "Name Font Size",
+		min = 8, max = 18, step = 1,
+	}
+	-- tagFontSize = 10,
+	local tagFontSize = { order = 30,
+		type = "range",
+		name = "Tag Font Size",
+		min = 8, max = 18, step = 1,
+	}
+	-- healthFontSize = 12,
+	local healthFontSize = { order = 31,
+		type = "range",
+		name = "Health Font Size",
+		min = 8, max = 18, step = 1,
+	}
+	-- powerFontSize = 10,
+	local powerFontSize = { order = 32,
+		type = "range",
+		name = "Power Font Size",
+		min = 8, max = 18, step = 1,
+	}
 
 	local section = {
 		-- scale = scale,
@@ -230,6 +254,10 @@ do --{{{ Module:MakeSectionArgs()
 		healthH = healthH,
 		powerH = powerH,
 		portraitPadding = portraitPadding,
+		nameFontSize = nameFontSize,
+		tagFontSize = tagFontSize,
+		healthFontSize = healthFontSize,
+		powerFontSize = powerFontSize,
 	}
 
 	function Module:MakeSectionArgs()

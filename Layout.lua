@@ -73,13 +73,17 @@ local basicStyle = {
 	pvpTimer = false,
 	nameW = 160,
 	nameH = 24,
+	nameFontSize = 12,
 	statsW = 160,
 	statsTopPadding = -2,
 	statTagWSpace = 35,
 	statTagW = 50,
 	statTagH = 12,
+	tagFontSize = 10,
 	healthH = 20,
+	healthFontSize = 12,
 	powerH = 10,
+	powerFontSize = 10,
 	portraitPadding = -3,
 }
 local stylePrototype = {
@@ -394,18 +398,16 @@ local function CreateStatusBar(parent)
 	bg:SetAlpha(.25)
 
 	-- text
-	local text = bar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local text = bar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	bar.text = text
-	-- text:SetFont(GameFontNormal:GetFont(), 12)
 	text:SetPoint("TOPLEFT", bar, 0, 0)
 	text:SetPoint("BOTTOMRIGHT", bar, 0, 1)
 	text:SetJustifyH("CENTER")
 	text:SetTextColor(1, 1, 1)
 
 	-- tag
-	local tag = bar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local tag = bar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	bar.tag = tag
-	-- tag:SetFont(GameFontNormal:GetFont(), 10)
 	tag:SetPoint("LEFT", bar, "RIGHT", 0, 1)
 	tag:SetJustifyH("LEFT")
 	tag:SetTextColor(1, 1, 1)
@@ -459,7 +461,6 @@ local function DoNameFrame(unitFrame, unit, isSingle)
 	unitFrame.Name = Name
 	Name:SetPoint("TOPLEFT", NameFrame, 0, 0)
 	Name:SetPoint("BOTTOMRIGHT", NameFrame, 0, 1)
-	Name:SetJustifyH("CENTER")
 	Name:SetTextColor(1, 1, 1)
 	unitFrame:Tag(Name, "[name]")
 end
@@ -480,9 +481,6 @@ local function DoStatsFrame(unitFrame, unit, isSingle)
 	Health.frequentUpdates = true
 	Health.colorSmooth = true
 	Health.Override = HealthOverride
-
-	-- text & tag
-	Health.text:SetFontObject(GameFontNormal)
 
 	local Power = CreateStatusBar(StatsFrame)
 	unitFrame.Power = Power
@@ -691,15 +689,20 @@ end
 local function LayoutNameAndStats(self, c, initial)
 	self.NameFrame:ClearAllPoints()
 	self.NameFrame:SetSize(c.nameW, c.nameH)
+	self.Name:SetFont(GameFontNormal:GetFont(), c.nameFontSize)
 
 	self.StatsFrame:ClearAllPoints()
 	self.StatsFrame:SetSize(c.statsW, c.healthH + c.powerH + 10)
 
 	UpdateBarTextures(self.Health)
+	self.Health.text:SetFont(GameFontNormal:GetFont(), c.healthFontSize)
+	self.Health.tag:SetFont(GameFontNormal:GetFont(), c.tagFontSize)
 	self.Health:SetHeight(c.healthH)
 	self.Health.tag:SetSize(c.statTagW, c.statTagH)
 
 	UpdateBarTextures(self.Power)
+	self.Power.text:SetFont(GameFontNormal:GetFont(), c.powerFontSize)
+	self.Power.tag:SetFont(GameFontNormal:GetFont(), c.tagFontSize)
 	self.Power.tag:SetSize(c.statTagW, c.statTagH)
 	self.Health:SetPoint("RIGHT", self.StatsFrame, -(5 + c.statTagWSpace), 0)
 end
