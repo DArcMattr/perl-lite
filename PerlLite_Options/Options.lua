@@ -36,6 +36,8 @@ function Module:CloseOptions()
 end
 
 --{{{ generic functions
+local falseStr = "  false  " -- spaces make it early in asciibetical order
+
 local function generic_get_style(info)
 	local setting, style = info[#info], info[#info-1]
 	return Core.Layout.style[style][setting]
@@ -43,7 +45,7 @@ end
 
 local function generic_get_style_or_false(info)
 	local val = generic_get_style(info)
-	return (val ~= false) and val or "false"
+	return (val ~= false) and val or falseStr
 end
 
 local function generic_set_style(info, val)
@@ -56,7 +58,7 @@ local function generic_set_style(info, val)
 end
 
 local function generic_set_style_or_false(info, val)
-	return generic_set_style(info, (val ~= "false") and val or false)
+	return generic_set_style(info, (val ~= falseStr) and val or false)
 end
 --}}}
 
@@ -85,7 +87,7 @@ do --{{{ Module:MakeSectionArgs()
 	local portrait = { order = nextOrder(),
 		type = "select",
 		name = "Portrait",
-		values = { ["false"]="None", ["2d"]="2D", ["3d"]="3D" },
+		values = { [falseStr]="None", ["2d"]="2D", ["3d"]="3D" },
 		get = generic_get_style_or_false,
 		set = generic_set_style_or_false,
 	}
@@ -135,7 +137,7 @@ do --{{{ Module:MakeSectionArgs()
 	local pvpIcon = { order = nextOrder(),
 		type = "select",
 		name = "PvP Icon",
-		values = { ["false"]="None", left="Left", right="Right" },
+		values = { [falseStr]="None", left="Left", right="Right" },
 		get = generic_get_style_or_false,
 		set = generic_set_style_or_false,
 	}
@@ -251,7 +253,7 @@ do --{{{ Module:MakeSectionArgs()
 	local raidIcon = { order = nextOrder(),
 		type = "select",
 		name = "Raid Icon",
-		values = { ["false"]="None", left="Left", right="Right" },
+		values = { [falseStr]="None", left="Left", right="Right" },
 		get = generic_get_style_or_false,
 		set = generic_set_style_or_false,
 	}
