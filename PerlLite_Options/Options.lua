@@ -60,8 +60,18 @@ local function generic_set_style(info, val)
 	local prototypeVal = Core.Layout.stylePrototype[style][setting]
 	profile[style][setting] = (val ~= prototypeVal) and val or nil
 	Core.Layout.style[style][setting] = val
-	Core.oUF.units[style]:Layout()
-	Core.oUF.units[style]:UpdateAllElements()
+	if style == "party" then
+		for i = 1,4 do
+			local frame = Core.oUF.units[style..i]
+			if frame then
+				frame:Layout()
+				frame:UpdateAllElements()
+			end
+		end
+	else
+		Core.oUF.units[style]:Layout()
+		Core.oUF.units[style]:UpdateAllElements()
+	end
 end
 
 local function generic_set_style_or_false(info, val)
@@ -381,6 +391,7 @@ function Module:OnInitialize()
 	options.args.pet = self:MakeSection(3, "Pet")
 	options.args.target = self:MakeSection(4, "Target")
 	options.args.targettarget = self:MakeSection(5, "TargetTarget")
+	options.args.party = self:MakeSection(6, "Party")
 	options.args.profile = LibStub("AceDBOptions-3.0"):GetOptionsTable(Core.db) -- Ace3 Profiles
 
 	-- Remove any stub in the Interface options, before adding the real one.
