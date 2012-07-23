@@ -36,7 +36,7 @@ function Module:CloseOptions()
 end
 
 --{{{ generic functions
-local function generic_get_style(info, val)
+local function generic_get_style(info)
 	local setting, style = info[#info], info[#info-1]
 	return Core.Layout.style[style][setting]
 end
