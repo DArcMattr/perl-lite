@@ -61,21 +61,28 @@ end
 --}}}
 
 do --{{{ Module:MakeSectionArgs()
+	local _nextOrder = 1
+	local function nextOrder()
+		local val = _nextOrder
+		_nextOrder = _nextOrder + 1
+		return val
+	end
+
 	-- scale = 1,
 	-- alpha = 216,
-	local alpha = { order = 2,
+	local alpha = { order = nextOrder(),
 		type = "range",
 		name = "Alpha",
 		min = 0, max = 255, step = 1,
 	}
 	-- nestedAlpha = true,
-	local nestedAlpha = { order = 3,
+	local nestedAlpha = { order = nextOrder(),
 		type = "toggle",
 		name = "Nested Alpha",
 	}
 	-- rangeAlphaCoef = false,
 	-- portrait = false,
-	local portrait = { order = 4,
+	local portrait = { order = nextOrder(),
 		type = "select",
 		name = "Portrait",
 		values = { ["false"]="None", ["2d"]="2D", ["3d"]="3D" },
@@ -83,49 +90,49 @@ do --{{{ Module:MakeSectionArgs()
 		set = generic_set_style_or_false,
 	}
 	-- portraitW = 60,
-	local portraitW = { order = 5,
+	local portraitW = { order = nextOrder(),
 		type = "range",
 		name = "Portrait Width",
 		min = 40, max = 80, step = 1,
 	}
 	-- portraitH = 62,
-	local portraitH = { order = 6,
+	local portraitH = { order = nextOrder(),
 		type = "range",
 		name = "Portrait Height",
 		min = 40, max = 80, step = 1,
 	}
 	-- leftToRight = true,
-	local leftToRight = { order = 7,
+	local leftToRight = { order = nextOrder(),
 		type = "toggle",
 		name = "Left-to-Right",
 	}
 	-- level = true,
-	local level = { order = 8,
+	local level = { order = nextOrder(),
 		type = "toggle",
 		name = "Level",
 	}
 	-- embedLevelAndClassIcon = false,
-	local embedLevelAndClassIcon = { order = 9,
+	local embedLevelAndClassIcon = { order = nextOrder(),
 		type = "toggle",
 		name = "Embed Level & Class",
 	}
 	-- classIcon = true,
-	local classIcon = { order = 10,
+	local classIcon = { order = nextOrder(),
 		type = "toggle",
 		name = "Class",
 	}
 	-- eliteType = false,
-	local eliteType = { order = 11,
+	local eliteType = { order = nextOrder(),
 		type = "toggle",
 		name = "Elite",
 	}
 	-- npcRace = false,
-	local npcRace = { order = 12,
+	local npcRace = { order = nextOrder(),
 		type = "toggle",
 		name = "NPC Race",
 	}
 	-- pvpIcon = "left",
-	local pvpIcon = { order = 13,
+	local pvpIcon = { order = nextOrder(),
 		type = "select",
 		name = "PvP Icon",
 		values = { ["false"]="None", left="Left", right="Right" },
@@ -133,117 +140,115 @@ do --{{{ Module:MakeSectionArgs()
 		set = generic_set_style_or_false,
 	}
 	-- pvpIconSize = 26,
-	local pvpIconSize = { order = 14,
+	local pvpIconSize = { order = nextOrder(),
 		type = "range",
 		name = "PvP Icon Size",
 		min = 15, max = 35, step = 1,
 	}
 	-- pvpIconInset = 7,
-	local pvpIconInset = { order = 15,
+	local pvpIconInset = { order = nextOrder(),
 		type = "range",
 		name = "PvP Icon Inset",
 		min = 0, max = 15, step = 1,
 	}
 	-- pvpTimer = false,
-	local pvpTimer = { order = 16,
+	local pvpTimer = { order = nextOrder(),
 		type = "toggle",
 		name = "PvP Timer",
 	}
 	-- nameW = 160,
-	local nameW = { order = 17,
+	local nameW = { order = nextOrder(),
 		type = "range",
 		name = "Name Width",
 		min = 120, max = 200, step = 1,
 	}
 	-- nameH = 24,
-	local nameH = { order = 18,
+	local nameH = { order = nextOrder(),
 		type = "range",
 		name = "Name Height",
 		min = 10, max = 40, step = 1,
 	}
 	-- statsW = 160,
-	local statsW = { order = 19,
+	local statsW = { order = nextOrder(),
 		type = "range",
 		name = "Stats Width",
 		min = 120, max = 200, step = 1,
 	}
-	-- 20 removed
 	-- statsTopPadding = -2,
-	local statsTopPadding = { order = 21,
+	local statsTopPadding = { order = nextOrder(),
 		type = "range",
 		name = "Stats Top Padding",
 		min = -10, max = 10, step = 1,
 	}
 	-- statTagWSpace = 35,
-	local statTagWSpace = { order = 22,
+	local statTagWSpace = { order = nextOrder(),
 		type = "range",
 		name = "Stat Tag Space",
 		min = 0, max = 80, step = 1,
 	}
 	--[[
 	-- statTagW = 50,
-	local statTagW = { order = 23,
+	local statTagW = { order = nextOrder(),
 		type = "range",
 		name = "Stat Tag Width",
 		min = 0, max = 80, step = 1,
 	}
 	-- statTagH = 12,
-	local statTagH = { order = 24,
+	local statTagH = { order = nextOrder(),
 		type = "range",
 		name = "Stat Tag Height",
 		min = 0, max = 80, step = 1,
 	}
 	--]]
 	-- healthH = 20,
-	local healthH = { order = 25,
+	local healthH = { order = nextOrder(),
 		type = "range",
 		name = "Health Bar Height",
 		min = 0, max = 50, step = 1,
 	}
 	-- powerH = 10,
-	local powerH = { order = 26,
+	local powerH = { order = nextOrder(),
 		type = "range",
 		name = "Power Bar Height",
 		min = 0, max = 50, step = 1,
 	}
-	-- 27 was removed
 	-- portraitPadding = -3,
-	local portraitPadding = { order = 28,
+	local portraitPadding = { order = nextOrder(),
 		type = "range",
 		name = "Portrait Padding",
 		min = -20, max = 20, step = 1,
 	}
 	-- nameFontSize = 12,
-	local nameFontSize = { order = 29,
+	local nameFontSize = { order = nextOrder(),
 		type = "range",
 		name = "Name Font Size",
 		min = 8, max = 18, step = 1,
 	}
 	-- tagFontSize = 10,
-	local tagFontSize = { order = 30,
+	local tagFontSize = { order = nextOrder(),
 		type = "range",
 		name = "Tag Font Size",
 		min = 8, max = 18, step = 1,
 	}
 	-- healthFontSize = 12,
-	local healthFontSize = { order = 31,
+	local healthFontSize = { order = nextOrder(),
 		type = "range",
 		name = "Health Font Size",
 		min = 8, max = 18, step = 1,
 	}
 	-- powerFontSize = 10,
-	local powerFontSize = { order = 32,
+	local powerFontSize = { order = nextOrder(),
 		type = "range",
 		name = "Power Font Size",
 		min = 8, max = 18, step = 1,
 	}
 	-- nameLeft = false,
-	local nameLeft = { order = 33,
+	local nameLeft = { order = nextOrder(),
 		type = "toggle",
 		name = "Name-on-Left",
 	}
 	-- raidIcon = false,
-	local raidIcon = { order = 34,
+	local raidIcon = { order = nextOrder(),
 		type = "select",
 		name = "Raid Icon",
 		values = { ["false"]="None", left="Left", right="Right" },
@@ -251,19 +256,19 @@ do --{{{ Module:MakeSectionArgs()
 		set = generic_set_style_or_false,
 	}
 	-- raidIconSize = 16,
-	local raidIconSize = { order = 35,
+	local raidIconSize = { order = nextOrder(),
 		type = "range",
 		name = "Raid Icon Size",
 		min = 10, max = 35, step = 1,
 	}
 	-- raidIconInset = 5,
-	local raidIconInset = { order = 36,
+	local raidIconInset = { order = nextOrder(),
 		type = "range",
 		name = "Raid Icon Inset",
 		min = 0, max = 15, step = 1,
 	}
 	-- raidIconY = 12,
-	local raidIconY = { order = 37,
+	local raidIconY = { order = nextOrder(),
 		type = "range",
 		name = "Raid Icon Y",
 		min = -20, max = 20, step = 1,
