@@ -40,27 +40,28 @@ Addon.defaults = {
 		barTexture = Addon.texturePath..[[Smooth]], -- "Interface\\TargetingFrame\\UI-TargetingFrame-BarFill"
 		player = {
 			scale = 0.9,
-			attachPoint = "CENTER",
-			attachX = -200,
-			attachY = -380,
+			attachPoint = "TOPLEFT",
+			attachX = 22,
+			attachY = -22,
+		},
 		},
 		target = {
 			scale = 0.8,
-			attachPoint = "CENTER",
-			attachX = 200,
-			attachY = -380,
+			attachPoint = "TOP",
+			attachX = -177,
+			attachY = -22,
 		},
 		targettarget = {
 			scale = 0.7,
-			attachPoint = "CENTER",
-			attachX = 0,
-			attachY = -250,
+			attachPoint = "TOP",
+			attachX = -15,
+			attachY = -22,
 		},
 		party = {
 			scale = 0.8,
 			attachPoint = "TOPLEFT",
-			attachX = 30,
-			attachY = -30,
+			attachX = 0,
+			attachY = -140,
 		},
 	}
 }
