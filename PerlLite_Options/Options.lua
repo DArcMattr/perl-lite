@@ -41,6 +41,11 @@ local function generic_get_style(info)
 	return Core.Layout.style[style][setting]
 end
 
+local function generic_get_style_or_false(info)
+	local val = generic_get_style(info)
+	return (val ~= false) and val or "false"
+end
+
 local function generic_set_style(info, val)
 	local setting, style = info[#info], info[#info-1]
 	local prototypeVal = Core.Layout.stylePrototype[style][setting]
@@ -48,6 +53,10 @@ local function generic_set_style(info, val)
 	Core.Layout.style[style][setting] = val
 	Core.oUF.units[style]:Layout()
 	Core.oUF.units[style]:UpdateAllElements()
+end
+
+local function generic_set_style_or_false(info, val)
+	return generic_set_style(info, (val ~= "false") and val or false)
 end
 --}}}
 
@@ -70,13 +79,8 @@ do --{{{ Module:MakeSectionArgs()
 		type = "select",
 		name = "Portrait",
 		values = { ["false"]="None", ["2d"]="2D", ["3d"]="3D" },
-		get = function(info)
-			local val = generic_get_style(info)
-			return (val ~= false) and val or "false"
-		end,
-		set = function(info, val)
-			return generic_set_style(info, (val ~= "false") and val or false)
-		end,
+		get = generic_get_style_or_false,
+		set = generic_set_style_or_false,
 	}
 	-- portraitW = 60,
 	local portraitW = { order = 5,
