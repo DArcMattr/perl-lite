@@ -85,6 +85,10 @@ local basicStyle = {
 	masterLooterIconSize = 16,
 	masterLooterIconX = 20,
 	masterLooterIconY = -1,
+	combatIcon = false,
+	combatIconSize = 32,
+	combatIconX = -14,
+	combatIconY = 0,
 	nameW = 160,
 	nameH = 24,
 	nameFontSize = 12,
@@ -109,6 +113,7 @@ local stylePrototype = {
 		pvpTimer = true,
 		leaderIcon = "TOP",
 		masterLooterIcon = "TOP",
+		combatIcon = "RIGHT",
 	},
 	pet = {
 		nestedAlpha = false,
@@ -431,6 +436,26 @@ local PortraitPostUpdate3D = function(self, unit)
 	end
 end
 
+local CombatOverride = function(self, event)
+	if UnitAffectingCombat("player") then
+		self.Combat:Show()
+		self.Resting:Hide()
+	else
+		self.Combat:Hide()
+		if IsResting() then
+			self.Resting:Show()
+		end
+	end
+end
+
+local RestingOverride = function(self, event)
+	if IsResting() and not UnitAffectingCombat("player") then
+		self.Resting:Show()
+	else
+		self.Resting:Hide()
+	end
+end
+
 local function CreateStatusBar(parent)
 	local bar = CreateFrame("StatusBar", nil, parent)
 
@@ -599,6 +624,32 @@ local function LayoutMasterLooterIcon(self, c, initial)
 	elseif self.MasterLooter then
 		self:DisableElement("MasterLooter")
 		self.MasterLooter:Hide()
+	end
+end
+
+local function LayoutCombatIcon(self, c, initial)
+	if c.combatIcon then
+		if not self.Combat then
+			self.Combat = self.NameFrame:CreateTexture(nil, "ARTWORK")
+			self.Combat:SetTexture([[Interface\CharacterFrame\UI-StateIcon]])
+			self.Combat:SetTexCoord(31/63, 63/63, 0/63, 31/63)
+			self.Combat.Override = CombatOverride
+			self.Resting = self.NameFrame:CreateTexture(nil, "ARTWORK")
+			self.Resting:SetTexture([[Interface\CharacterFrame\UI-StateIcon]])
+			self.Resting:SetTexCoord(0/63, 31/63, 0/63, 31/63)
+			self.Resting.Override = RestingOverride
+		end
+		if not initial then self:EnableElement("Combat") end
+		if not initial then self:EnableElement("Resting") end
+		self.Combat:SetSize(c.combatIconSize, c.combatIconSize)
+		self.Combat:SetPoint("CENTER", self.NameFrame, c.combatIcon, c.combatIconX, c.combatIconY)
+		self.Resting:SetSize(c.combatIconSize, c.combatIconSize)
+		self.Resting:SetPoint("CENTER", self.NameFrame, c.combatIcon, c.combatIconX, c.combatIconY)
+	elseif self.Combat then
+		self:DisableElement("Combat")
+		self.Combat:Hide()
+		self:DisableElement("Resting")
+		self.Resting:Hide()
 	end
 end
 
@@ -862,6 +913,7 @@ local Layout = function(self, initial)
 	LayoutRaidIcon(self, c, initial)
 	LayoutLeaderIcon(self, c, initial)
 	LayoutMasterLooterIcon(self, c, initial)
+	LayoutCombatIcon(self, c, initial)
 	LayoutClassIcon(self, c, initial)
 	LayoutEliteFrame(self, c, initial)
 	LayoutRaceFrame(self, c, initial)
