@@ -35,8 +35,15 @@ function Module:CloseOptions()
 	LibStub("AceConfigDialog-3.0"):Close(_coreAddonName)
 end
 
---{{{ generic functions
+--{{{ generics
 local falseStr = "  false  " -- spaces make it early in asciibetical order
+
+local point_values = {
+	[falseStr]="None",
+	TOPLEFT="TOPLEFT", LEFT="LEFT", BOTTOMLEFT="BOTTOMLEFT",
+	TOP="TOP", CENTER="CENTER", BOTTOM="BOTTOM",
+	TOPRIGHT="TOPRIGHT", RIGHT="RIGHT", BOTTOMRIGHT="BOTTOMRIGHT"
+}
 
 local function generic_get_style(info)
 	local setting, style = info[#info], info[#info-1]
@@ -137,7 +144,7 @@ do --{{{ Module:MakeSectionArgs()
 	local pvpIcon = { order = nextOrder(),
 		type = "select",
 		name = "PvP Icon",
-		values = { [falseStr]="None", left="Left", right="Right" },
+		values = point_values,
 		get = generic_get_style_or_false,
 		set = generic_set_style_or_false,
 	}
@@ -147,11 +154,17 @@ do --{{{ Module:MakeSectionArgs()
 		name = "PvP Icon Size",
 		min = 15, max = 35, step = 1,
 	}
-	-- pvpIconInset = 7,
-	local pvpIconInset = { order = nextOrder(),
+	-- pvpIconX = 7,
+	local pvpIconX = { order = nextOrder(),
 		type = "range",
-		name = "PvP Icon Inset",
-		min = 0, max = 15, step = 1,
+		name = "PvP Icon X",
+		min = -20, max = 20, step = 1,
+	}
+	-- pvpIconY = 0,
+	local pvpIconY = { order = nextOrder(),
+		type = "range",
+		name = "PvP Icon Y",
+		min = -20, max = 20, step = 1,
 	}
 	-- pvpTimer = false,
 	local pvpTimer = { order = nextOrder(),
@@ -253,7 +266,7 @@ do --{{{ Module:MakeSectionArgs()
 	local raidIcon = { order = nextOrder(),
 		type = "select",
 		name = "Raid Icon",
-		values = { [falseStr]="None", left="Left", right="Right" },
+		values = point_values,
 		get = generic_get_style_or_false,
 		set = generic_set_style_or_false,
 	}
@@ -263,11 +276,11 @@ do --{{{ Module:MakeSectionArgs()
 		name = "Raid Icon Size",
 		min = 10, max = 35, step = 1,
 	}
-	-- raidIconInset = 5,
-	local raidIconInset = { order = nextOrder(),
+	-- raidIconX = -5,
+	local raidIconX = { order = nextOrder(),
 		type = "range",
-		name = "Raid Icon Inset",
-		min = 0, max = 15, step = 1,
+		name = "Raid Icon X",
+		min = -20, max = 20, step = 1,
 	}
 	-- raidIconY = 12,
 	local raidIconY = { order = nextOrder(),
@@ -292,7 +305,8 @@ do --{{{ Module:MakeSectionArgs()
 		npcRace = npcRace,
 		pvpIcon = pvpIcon,
 		pvpIconSize = pvpIconSize,
-		pvpIconInset = pvpIconInset,
+		pvpIconX = pvpIconX,
+		pvpIconY = pvpIconY,
 		pvpTimer = pvpTimer,
 		nameW = nameW,
 		nameH = nameH,
@@ -311,7 +325,7 @@ do --{{{ Module:MakeSectionArgs()
 		nameLeft = nameLeft,
 		raidIcon = raidIcon,
 		raidIconSize = raidIconSize,
-		raidIconInset = raidIconInset,
+		raidIconX = raidIconX,
 		raidIconY = raidIconY,
 	}
 

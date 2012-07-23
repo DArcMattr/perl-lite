@@ -68,13 +68,14 @@ local basicStyle = {
 	classIcon = true,
 	eliteType = false,
 	npcRace = false,
-	pvpIcon = "left",
+	pvpIcon = "LEFT",
 	pvpIconSize = 26,
-	pvpIconInset = 7,
+	pvpIconX = 7,
+	pvpIconY = 0,
 	pvpTimer = false,
 	raidIcon = false,
 	raidIconSize = 16,
-	raidIconInset = 5,
+	raidIconX = -5,
 	raidIconY = 9,
 	nameW = 160,
 	nameH = 24,
@@ -118,18 +119,19 @@ local stylePrototype = {
 		leftToRight = false,
 		eliteType = true,
 		npcRace = true,
-		raidIcon = "right",
+		raidIcon = "RIGHT",
 	},
 	targettarget = {
 		level = false,
 		classIcon = false,
-		raidIcon = "right",
+		raidIcon = "RIGHT",
 	},
 	party = {
 		rangeAlphaCoef = 0.5,
 		embedLevelAndClassIcon = true,
-		pvpIcon = "right",
+		pvpIcon = "RIGHT",
 		pvpIconSize = 24,
+		pvpIconX = -7,
 		nameW = 106,
 		statsW = 142,
 		statsTopPadding = -3,
@@ -523,12 +525,7 @@ local function LayoutPvPIcon(self, c, initial)
 		end
 		if not initial then self:EnableElement("PvP") end
 		self.PvP:SetSize(c.pvpIconSize, c.pvpIconSize)
-		local pos = c.pvpIcon
-		if pos == "left" then
-			self.PvP:SetPoint("CENTER", self.NameFrame, "LEFT", c.pvpIconInset, 0)
-		else
-			self.PvP:SetPoint("CENTER", self.NameFrame, "RIGHT", -(c.pvpIconInset), 0)
-		end
+		self.PvP:SetPoint("CENTER", self.NameFrame, c.pvpIcon, c.pvpIconX, c.pvpIconY)
 	elseif self.PvP then
 		self:DisableElement("PvP")
 		self.PvP:Hide()
@@ -554,11 +551,7 @@ local function LayoutRaidIcon(self, c, initial)
 		end
 		if not initial then self:EnableElement("RaidIcon") end
 		self.RaidIcon:SetSize(c.raidIconSize, c.raidIconSize)
-		if c.raidIcon == "left" then
-			self.RaidIcon:SetPoint("CENTER", self.NameFrame, "LEFT", c.raidIconInset, c.raidIconY)
-		else
-			self.RaidIcon:SetPoint("CENTER", self.NameFrame, "RIGHT", -c.raidIconInset, c.raidIconY)
-		end
+		self.RaidIcon:SetPoint("CENTER", self.NameFrame, c.raidIcon, c.raidIconX, c.raidIconY)
 	elseif self.RaidIcon then
 		self:DisableElement("RaidIcon")
 		self.RaidIcon:Hide()
