@@ -59,6 +59,11 @@ do --{{{ Module:MakeSectionArgs()
 		name = "Alpha",
 		min = 0, max = 255, step = 1,
 	}
+	-- nestedAlpha = true,
+	local nestedAlpha = { order = 3,
+		type = "toggle",
+		name = "Nested Alpha",
+	}
 	-- rangeAlphaCoef = false,
 	-- portrait = false,
 	local portrait = { order = 4,
@@ -235,6 +240,7 @@ do --{{{ Module:MakeSectionArgs()
 	local section = {
 		-- scale = scale,
 		alpha = alpha,
+		nestedAlpha = nestedAlpha,
 		-- rangeAlphaCoef = rangeAlphaCoef,
 		portrait = portrait,
 		portraitW = portraitW,

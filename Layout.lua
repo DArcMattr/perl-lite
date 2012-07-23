@@ -57,6 +57,7 @@ local wipe = wipe
 local basicStyle = {
 	scale = 1,
 	alpha = 216,
+	nestedAlpha = true,
 	rangeAlphaCoef = false,
 	portrait = false,
 	portraitW = 60,
@@ -89,6 +90,7 @@ local basicStyle = {
 }
 local stylePrototype = {
 	player = {
+		nestedAlpha = false,
 		portrait = "3d",
 		pvpIconSize = 30,
 		pvpTimer = true,
@@ -717,12 +719,15 @@ end
 local Layout = function(self, initial)
 	local c = self.styleConf
 
-	-- Alphas. XPerl is weird about this. Nested frames get an alpha that combines with the main one, except for the Player frame.
+	-- Alphas. XPerl is weird about this. Nested frames get an alpha that combines with the main one, with some exceptions.
 	local alpha = c.alpha
 	self:SetAlpha(alpha / 255)
-	if self.unit ~= "player" then
+	if c.nestedAlpha then
 		self.NameFrame:SetAlpha(alpha / 255)
 		self.StatsFrame:SetAlpha(alpha / 255)
+	else
+		self.NameFrame:SetAlpha(1)
+		self.StatsFrame:SetAlpha(1)
 	end
 
 	self.corner = false -- to make sure nothing tries to use until it's set
