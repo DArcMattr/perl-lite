@@ -128,7 +128,9 @@ do --{{{ Module:MakeSectionArgs()
 	local pvpIcon = { order = 13,
 		type = "select",
 		name = "PvP Icon",
-		values = { left="Always Left", right="Always Right", near="Near Side", far="Far Side" }
+		values = { ["false"]="None", left="Left", right="Right" },
+		get = generic_get_style_or_false,
+		set = generic_set_style_or_false,
 	}
 	-- pvpIconSize = 26,
 	local pvpIconSize = { order = 14,

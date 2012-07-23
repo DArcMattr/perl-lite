@@ -122,7 +122,7 @@ local stylePrototype = {
 	party = {
 		rangeAlphaCoef = 0.5,
 		embedLevelAndClassIcon = true,
-		pvpIcon = "far",
+		pvpIcon = "right",
 		pvpIconSize = 24,
 		nameW = 106,
 		statsW = 142,
@@ -517,8 +517,6 @@ local function LayoutPvPIcon(self, c, initial)
 		if not initial then self:EnableElement("PvP") end
 		self.PvP:SetSize(c.pvpIconSize, c.pvpIconSize)
 		local pos = c.pvpIcon
-		if pos == "near" then pos = c.leftToRight and "left" or "right" end
-		if pos == "far" then pos = c.leftToRight and "right" or "left" end
 		if pos == "left" then
 			self.PvP:SetPoint("CENTER", self.NameFrame, "LEFT", c.pvpIconInset, 0)
 		else
