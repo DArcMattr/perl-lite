@@ -150,32 +150,6 @@ do --{{{ Module:MakeSectionArgs()
 		type = "toggle",
 		name = "NPC Race",
 	}
-	-- pvpIcon = "left",
-	local pvpIcon = { order = nextOrder(),
-		type = "select",
-		name = "PvP Icon",
-		values = point_values,
-		get = generic_get_style_or_false,
-		set = generic_set_style_or_false,
-	}
-	-- pvpIconSize = 26,
-	local pvpIconSize = { order = nextOrder(),
-		type = "range",
-		name = "PvP Icon Size",
-		min = 15, max = 35, step = 1,
-	}
-	-- pvpIconX = 7,
-	local pvpIconX = { order = nextOrder(),
-		type = "range",
-		name = "PvP Icon X",
-		min = -20, max = 20, step = 1,
-	}
-	-- pvpIconY = 0,
-	local pvpIconY = { order = nextOrder(),
-		type = "range",
-		name = "PvP Icon Y",
-		min = -20, max = 20, step = 1,
-	}
 	-- pvpTimer = false,
 	local pvpTimer = { order = nextOrder(),
 		type = "toggle",
@@ -272,102 +246,65 @@ do --{{{ Module:MakeSectionArgs()
 		type = "toggle",
 		name = "Name-on-Left",
 	}
-	-- raidIcon = false,
-	local raidIcon = { order = nextOrder(),
-		type = "select",
-		name = "Raid Icon",
-		values = point_values,
-		get = generic_get_style_or_false,
-		set = generic_set_style_or_false,
-	}
-	-- raidIconSize = 16,
-	local raidIconSize = { order = nextOrder(),
-		type = "range",
-		name = "Raid Icon Size",
-		min = 10, max = 35, step = 1,
-	}
-	-- raidIconX = -5,
-	local raidIconX = { order = nextOrder(),
-		type = "range",
-		name = "Raid Icon X",
-		min = -20, max = 20, step = 1,
-	}
-	-- raidIconY = 12,
-	local raidIconY = { order = nextOrder(),
-		type = "range",
-		name = "Raid Icon Y",
-		min = -20, max = 20, step = 1,
-	}
-	-- leaderIcon = false,
-	local leaderIcon = { order = nextOrder(),
-		type = "select",
-		name = "Leader Icon",
-		values = point_values,
-		get = generic_get_style_or_false,
-		set = generic_set_style_or_false,
-	}
-	-- leaderIconSize = 16,
-	local leaderIconSize = { order = nextOrder(),
-		type = "range",
-		name = "Leader Icon Size",
-		min = 10, max = 35, step = 1,
-	}
-	-- leaderIconX = 0,
-	local leaderIconX = { order = nextOrder(),
-		type = "range",
-		name = "Leader Icon X",
-		min = -20, max = 20, step = 1,
-	}
-	-- leaderIconY = -1,
-	local leaderIconY = { order = nextOrder(),
-		type = "range",
-		name = "Leader Icon Y",
-		min = -20, max = 20, step = 1,
-	}
 
-	local section = {
-		-- scale = scale,
-		alpha = alpha,
-		nestedAlpha = nestedAlpha,
-		-- rangeAlphaCoef = rangeAlphaCoef,
-		portrait = portrait,
-		portraitW = portraitW,
-		portraitH = portraitH,
-		leftToRight = leftToRight,
-		level = level,
-		embedLevelAndClassIcon = embedLevelAndClassIcon,
-		classIcon = classIcon,
-		eliteType = eliteType,
-		npcRace = npcRace,
-		pvpIcon = pvpIcon,
-		pvpIconSize = pvpIconSize,
-		pvpIconX = pvpIconX,
-		pvpIconY = pvpIconY,
-		pvpTimer = pvpTimer,
-		nameW = nameW,
-		nameH = nameH,
-		statsW = statsW,
-		statsTopPadding = statsTopPadding,
-		statTagWSpace = statTagWSpace,
-		-- statTagW = statTagW,
-		-- statTagH = statTagH,
-		healthH = healthH,
-		powerH = powerH,
-		portraitPadding = portraitPadding,
-		nameFontSize = nameFontSize,
-		tagFontSize = tagFontSize,
-		healthFontSize = healthFontSize,
-		powerFontSize = powerFontSize,
-		nameLeft = nameLeft,
-		raidIcon = raidIcon,
-		raidIconSize = raidIconSize,
-		raidIconX = raidIconX,
-		raidIconY = raidIconY,
-		leaderIcon = leaderIcon,
-		leaderIconSize = leaderIconSize,
-		leaderIconX = leaderIconX,
-		leaderIconY = leaderIconY,
-	}
+	local function MakeIconSettings(t, name, cname)
+		t[name] = { order = nextOrder(),
+			type = "select",
+			name = cname,
+			values = point_values,
+			get = generic_get_style_or_false,
+			set = generic_set_style_or_false,
+		}
+		t[name.."Size"] = { order = nextOrder(),
+			type = "range",
+			name = cname.." Size",
+			min = 10, max = 35, step = 1,
+		}
+		t[name.."X"] = { order = nextOrder(),
+			type = "range",
+			name = cname.." X",
+			min = -40, max = 40, step = 1,
+		}
+		t[name.."Y"] = { order = nextOrder(),
+			type = "range",
+			name = cname.." Y",
+			min = -40, max = 40, step = 1,
+		}
+	end
+
+	local section = {}
+	-- section.scale = scale
+	section.alpha = alpha
+	section.nestedAlpha = nestedAlpha
+	-- section.rangeAlphaCoef = rangeAlphaCoef
+	section.portrait = portrait
+	section.portraitW = portraitW
+	section.portraitH = portraitH
+	section.leftToRight = leftToRight
+	section.level = level
+	section.embedLevelAndClassIcon = embedLevelAndClassIcon
+	section.classIcon = classIcon
+	section.eliteType = eliteType
+	section.npcRace = npcRace
+	MakeIconSettings(section, "pvpIcon", "PvP Icon")
+	section.pvpTimer = pvpTimer
+	section.nameW = nameW
+	section.nameH = nameH
+	section.statsW = statsW
+	section.statsTopPadding = statsTopPadding
+	section.statTagWSpace = statTagWSpace
+	-- section.statTagW = statTagW
+	-- section.statTagH = statTagH
+	section.healthH = healthH
+	section.powerH = powerH
+	section.portraitPadding = portraitPadding
+	section.nameFontSize = nameFontSize
+	section.tagFontSize = tagFontSize
+	section.healthFontSize = healthFontSize
+	section.powerFontSize = powerFontSize
+	section.nameLeft = nameLeft
+	MakeIconSettings(section, "raidIcon", "Raid Icon")
+	MakeIconSettings(section, "leaderIcon", "Leader Icon")
 
 	function Module:MakeSectionArgs()
 		return section
