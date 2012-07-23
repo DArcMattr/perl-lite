@@ -41,7 +41,7 @@ local Update = function(self, event, arg1)
 		return
 	end
 	local level = self.Level
-	if val > 0 then
+	if val >= 0 then
 		level:SetText(val)
 		local color = GetQuestDifficultyColor(val)
 		level:SetTextColor(color.r, color.g, color.b)
