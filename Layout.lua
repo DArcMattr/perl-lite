@@ -262,6 +262,7 @@ local HealthOverride = function(self, event, unit, powerType)
 		-- class color
 		local _, class = UnitClass(unit)
 		nameColor = self.colors.class[class]
+		if not nameColor then error("invalid UnitClass '"..(class or "nil").."' for unit '"..unit.."'") end
 	else
 		local react = UnitReaction(unit, "player")
 		-- note: UnitSelectionColor is a possible alternative to UnitReaction
