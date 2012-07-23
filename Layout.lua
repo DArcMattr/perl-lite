@@ -95,6 +95,7 @@ local stylePrototype = {
 		npcRace = true,
 	},
 	targettarget = {
+		level = false,
 		classIcon = false,
 	},
 	party = {
