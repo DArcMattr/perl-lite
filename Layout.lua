@@ -95,6 +95,20 @@ local stylePrototype = {
 		pvpIconSize = 30,
 		pvpTimer = true,
 	},
+	pet = {
+		nestedAlpha = false,
+		portrait = "3d",
+		portraitW = 50,
+		portraitH = 56,
+		classIcon = false,
+		pvpIcon = false,
+		nameW = 80,
+		nameFontSize = 10,
+		nameLeft = true,
+		statsW = 80,
+		healthH = 14,
+		healthFontSize = 10,
+	},
 	target = {
 		portrait = "3d",
 		leftToRight = false,
@@ -952,8 +966,8 @@ function Module:OnInitialize()
 	end
 
 	oUF:Factory(function(self)
-		local player = spawnHelper(self, "player")
-		-- spawnHelper(self, "pet", "TOP", player, "BOTTOM", 0, -16)
+		spawnHelper(self, "player")
+		spawnHelper(self, "pet")
 		spawnHelper(self, "target")
 		spawnHelper(self, "targettarget")
 

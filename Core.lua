@@ -44,6 +44,11 @@ Addon.defaults = {
 			attachX = 22,
 			attachY = -22,
 		},
+		pet = {
+			scale = 0.7,
+			attachPoint = "TOPLEFT",
+			attachX = 128,
+			attachY = -75,
 		},
 		target = {
 			scale = 0.8,

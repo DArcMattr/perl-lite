@@ -321,6 +321,7 @@ function Module:OnInitialize()
 		}
 	}
 	options.args.player = self:MakeSection(2, "Player")
+	options.args.pet = self:MakeSection(3, "Pet")
 	options.args.target = self:MakeSection(4, "Target")
 	options.args.targettarget = self:MakeSection(5, "TargetTarget")
 	options.args.profile = LibStub("AceDBOptions-3.0"):GetOptionsTable(Core.db) -- Ace3 Profiles
