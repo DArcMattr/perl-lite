@@ -298,6 +298,32 @@ do --{{{ Module:MakeSectionArgs()
 		name = "Raid Icon Y",
 		min = -20, max = 20, step = 1,
 	}
+	-- leaderIcon = false,
+	local leaderIcon = { order = nextOrder(),
+		type = "select",
+		name = "Leader Icon",
+		values = point_values,
+		get = generic_get_style_or_false,
+		set = generic_set_style_or_false,
+	}
+	-- leaderIconSize = 16,
+	local leaderIconSize = { order = nextOrder(),
+		type = "range",
+		name = "Leader Icon Size",
+		min = 10, max = 35, step = 1,
+	}
+	-- leaderIconX = 0,
+	local leaderIconX = { order = nextOrder(),
+		type = "range",
+		name = "Leader Icon X",
+		min = -20, max = 20, step = 1,
+	}
+	-- leaderIconY = -1,
+	local leaderIconY = { order = nextOrder(),
+		type = "range",
+		name = "Leader Icon Y",
+		min = -20, max = 20, step = 1,
+	}
 
 	local section = {
 		-- scale = scale,
@@ -337,6 +363,10 @@ do --{{{ Module:MakeSectionArgs()
 		raidIconSize = raidIconSize,
 		raidIconX = raidIconX,
 		raidIconY = raidIconY,
+		leaderIcon = leaderIcon,
+		leaderIconSize = leaderIconSize,
+		leaderIconX = leaderIconX,
+		leaderIconY = leaderIconY,
 	}
 
 	function Module:MakeSectionArgs()

@@ -77,6 +77,10 @@ local basicStyle = {
 	raidIconSize = 16,
 	raidIconX = -5,
 	raidIconY = 9,
+	leaderIcon = false,
+	leaderIconSize = 16,
+	leaderIconX = 0,
+	leaderIconY = -1,
 	nameW = 160,
 	nameH = 24,
 	nameFontSize = 12,
@@ -99,6 +103,7 @@ local stylePrototype = {
 		portrait = "3d",
 		pvpIconSize = 30,
 		pvpTimer = true,
+		leaderIcon = "TOP",
 	},
 	pet = {
 		nestedAlpha = false,
@@ -120,6 +125,7 @@ local stylePrototype = {
 		eliteType = true,
 		npcRace = true,
 		raidIcon = "RIGHT",
+		leaderIcon = "TOP",
 	},
 	targettarget = {
 		level = false,
@@ -132,6 +138,8 @@ local stylePrototype = {
 		pvpIcon = "RIGHT",
 		pvpIconSize = 24,
 		pvpIconX = -7,
+		leaderIcon = "TOPLEFT",
+		leaderIconX = 18,
 		nameW = 106,
 		statsW = 142,
 		statsTopPadding = -3,
@@ -558,6 +566,20 @@ local function LayoutRaidIcon(self, c, initial)
 	end
 end
 
+local function LayoutLeaderIcon(self, c, initial)
+	if c.leaderIcon then
+		if not self.Leader then
+			self.Leader = self.NameFrame:CreateTexture(nil, "ARTWORK")
+		end
+		if not initial then self:EnableElement("Leader") end
+		self.Leader:SetSize(c.leaderIconSize, c.leaderIconSize)
+		self.Leader:SetPoint("CENTER", self.NameFrame, c.leaderIcon, c.leaderIconX, c.leaderIconY)
+	elseif self.Leader then
+		self:DisableElement("Leader")
+		self.Leader:Hide()
+	end
+end
+
 local function LayoutRange(self, c, initial)
 	if c.rangeAlphaCoef then
 		self.Range = self.Range or {}
@@ -816,6 +838,7 @@ local Layout = function(self, initial)
 	LayoutRange(self, c, initial)
 	LayoutPvPIcon(self, c, initial)
 	LayoutRaidIcon(self, c, initial)
+	LayoutLeaderIcon(self, c, initial)
 	LayoutClassIcon(self, c, initial)
 	LayoutEliteFrame(self, c, initial)
 	LayoutRaceFrame(self, c, initial)
