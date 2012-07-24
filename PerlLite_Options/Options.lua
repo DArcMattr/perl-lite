@@ -330,9 +330,10 @@ function Module:OnInitialize()
 	self:ProfileChanged()
 	Core:RegisterForProfileChange(self, "ProfileChanged")
 
+	local _, _coreAddonTitle = GetAddOnInfo(_coreAddonName)
 	local options = {
 		type = "group",
-		name = "Options",
+		name = _coreAddonTitle,
 		args = {},
 	}
 	options.args.main = {
@@ -365,7 +366,6 @@ function Module:OnInitialize()
 
 	-- Remove any stub in the Interface options, before adding the real one.
 	local categories = INTERFACEOPTIONS_ADDONCATEGORIES
-	local _, _coreAddonTitle = GetAddOnInfo(_coreAddonName)
 	for i = 1,#categories do
 		if categories[i].name == _coreAddonTitle then
 			tremove(categories, i)
