@@ -44,7 +44,7 @@ local Enable = function(self)
 		sos.ForceUpdate = ForceUpdate
 
 		sos.Play = sos.Play or PlaySound
-		sos.channel = sos.channel or "Master"
+		sos.channel = sos.channel or "SFX"
 		sos.aggro = sos.aggro or "igCreatureAggroSelect"
 		sos.npc = sos.npc or "igCharacterNPCSelect"
 		sos.neutral = sos.neutral or "igCreatureNeutralSelect"
