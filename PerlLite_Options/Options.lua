@@ -334,6 +334,7 @@ function Module:OnInitialize()
 	local options = {
 		type = "group",
 		name = _coreAddonTitle,
+		childGroups = "tab",
 		args = {},
 	}
 	options.args.main = {
@@ -374,6 +375,7 @@ function Module:OnInitialize()
 	end
 	InterfaceAddOnsList_Update()
 	LibStub("AceConfig-3.0"):RegisterOptionsTable(_coreAddonName, options)
+	LibStub("AceConfigDialog-3.0"):SetDefaultSize(_coreAddonName, 760, 500)
 	LibStub("AceConfigDialog-3.0"):AddToBlizOptions(_coreAddonName, _coreAddonTitle)
 	Module.options = options
 end
