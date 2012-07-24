@@ -16,7 +16,9 @@ local profile
 --{{{ upvalues
 -- GLOBALS: CreateFrame
 -- GLOBALS: GameFontNormal
+-- GLOBALS: IsResting
 -- GLOBALS: ToggleDropDownMenu
+-- GLOBALS: UnitAffectingCombat
 -- GLOBALS: UnitClass
 -- GLOBALS: UnitClassification
 -- GLOBALS: UnitCreatureFamily
