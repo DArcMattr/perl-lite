@@ -67,6 +67,7 @@ local basicStyle = {
 	portraitH = 62,
 	leftToRight = true,
 	healPrediction = true,
+	combatFeedback = false,
 	level = true,
 	embedLevelAndClassIcon = false,
 	classIcon = true,
@@ -113,6 +114,7 @@ local stylePrototype = {
 	player = {
 		nestedAlpha = false,
 		portrait = "3d",
+		combatFeedback = true,
 		pvpIconSize = 30,
 		pvpTimer = true,
 		leaderIcon = "TOP",
@@ -124,6 +126,7 @@ local stylePrototype = {
 		portrait = "3d",
 		portraitW = 50,
 		portraitH = 56,
+		combatFeedback = true,
 		classIcon = false,
 		pvpIcon = false,
 		nameW = 80,
@@ -135,6 +138,7 @@ local stylePrototype = {
 	},
 	target = {
 		portrait = "3d",
+		combatFeedback = true,
 		leftToRight = false,
 		eliteType = true,
 		npcRace = true,
@@ -149,6 +153,7 @@ local stylePrototype = {
 	},
 	party = {
 		rangeAlphaCoef = 0.5,
+		combatFeedback = true,
 		embedLevelAndClassIcon = true,
 		pvpIcon = "RIGHT",
 		pvpIconSize = 24,
@@ -877,6 +882,27 @@ local function LayoutHealPrediction(self, c, initial)
 	end
 end
 
+local function LayoutCombatFeedback(self, c, initial)
+	if c.combatFeedback then
+		if not self.SimpleCombatFeedback then
+			self.SimpleCombatFeedback = self:CreateFontString(nil, "OVERLAY", "NumberFontNormalHuge")
+		end
+		if not initial then self:EnableElement("SimpleCombatFeedback") end
+		self.SimpleCombatFeedback:ClearAllPoints()
+		if c.portrait == "3d" then
+			self.SimpleCombatFeedback:SetParent(self.Portrait)
+		elseif c.portrait == "2d" then
+			self.SimpleCombatFeedback:SetParent(self.PortraitFrame)
+		else
+			self.SimpleCombatFeedback:SetParent(self.NameFrame)
+		end
+		self.SimpleCombatFeedback:SetPoint("CENTER")
+	elseif self.SimpleCombatFeedback then
+		self:DisableElement("SimpleCombatFeedback")
+		self.SimpleCombatFeedback:Hide()
+	end
+end
+
 local Layout = function(self, initial)
 	local c = self.styleConf
 
@@ -944,6 +970,7 @@ local Layout = function(self, initial)
 	self:SetSize(width, height)
 
 	LayoutHealPrediction(self, c, initial)
+	LayoutCombatFeedback(self, c, initial)
 	LayoutRange(self, c, initial)
 	LayoutPvPIcon(self, c, initial)
 	LayoutRaidIcon(self, c, initial)

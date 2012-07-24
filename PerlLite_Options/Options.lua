@@ -136,6 +136,11 @@ do --{{{ Module:MakeSectionArgs()
 		type = "toggle",
 		name = "Heal Prediction",
 	}
+	-- combatFeedback = false,
+	local combatFeedback = { order = nextOrder(),
+		type = "toggle",
+		name = "Combat Feedback",
+	}
 	-- level = true,
 	local level = { order = nextOrder(),
 		type = "toggle",
@@ -293,6 +298,7 @@ do --{{{ Module:MakeSectionArgs()
 	section.portraitH = portraitH
 	section.leftToRight = leftToRight
 	section.healPrediction = healPrediction
+	section.combatFeedback = combatFeedback
 	section.level = level
 	section.embedLevelAndClassIcon = embedLevelAndClassIcon
 	section.classIcon = classIcon
