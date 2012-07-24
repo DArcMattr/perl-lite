@@ -25,6 +25,7 @@ local profile
 -- GLOBALS: UnitCreatureType
 -- GLOBALS: UnitFrame_OnEnter
 -- GLOBALS: UnitFrame_OnLeave
+-- GLOBALS: UnitGetIncomingHeals
 -- GLOBALS: UnitHealth
 -- GLOBALS: UnitHealthMax
 -- GLOBALS: UnitInRange
@@ -65,6 +66,7 @@ local basicStyle = {
 	portraitW = 60,
 	portraitH = 62,
 	leftToRight = true,
+	healPrediction = true,
 	level = true,
 	embedLevelAndClassIcon = false,
 	classIcon = true,
@@ -436,6 +438,19 @@ local PortraitPostUpdate3D = function(self, unit)
 	else
 		self:SetCamera(0)
 	end
+end
+
+local HealPredictionOverride = function (self, event, unit)
+	if self.unit ~= unit then return end
+	local hp = self.HealPrediction
+	local incoming = UnitGetIncomingHeals(unit) or 0
+	local health, maxHealth = UnitHealth(unit), UnitHealthMax(unit)
+	if health + incoming > maxHealth then
+		incoming = maxHealth - health
+	end
+	hp:SetMinMaxValues(0, maxHealth)
+	hp:SetValue(health + incoming)
+	hp:Show()
 end
 
 local CombatOverride = function(self, event)
@@ -844,6 +859,24 @@ local function LayoutNameAndStats(self, c, initial)
 	self.Health:SetPoint("RIGHT", self.StatsFrame, -(5 + c.statTagWSpace), 0)
 end
 
+local function LayoutHealPrediction(self, c, initial)
+	if c.healPrediction then
+		if not self.HealPrediction then
+			self.HealPrediction = CreateFrame("StatusBar", nil, self.StatsFrame)
+			self.HealPrediction.Override = HealPredictionOverride
+			self.HealPrediction:SetFrameLevel(self.Health:GetFrameLevel() - 1)
+		end
+		if not initial then self:EnableElement("HealPrediction") end
+		self.HealPrediction:SetStatusBarTexture(profile.barTexture)
+		self.HealPrediction:SetStatusBarColor(0, 1, 1)
+		self.HealPrediction:SetPoint("TOPLEFT", self.Health, 0, -2)
+		self.HealPrediction:SetPoint("BOTTOMRIGHT", self.Health, 0, 2)
+	elseif self.Leader then
+		self:DisableElement("HealPrediction")
+		self.HealPrediction:Hide()
+	end
+end
+
 local Layout = function(self, initial)
 	local c = self.styleConf
 
@@ -910,6 +943,7 @@ local Layout = function(self, initial)
 	end
 	self:SetSize(width, height)
 
+	LayoutHealPrediction(self, c, initial)
 	LayoutRange(self, c, initial)
 	LayoutPvPIcon(self, c, initial)
 	LayoutRaidIcon(self, c, initial)

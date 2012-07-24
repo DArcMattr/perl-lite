@@ -125,6 +125,11 @@ do --{{{ Module:MakeSectionArgs()
 		type = "toggle",
 		name = "Left-to-Right",
 	}
+	-- healPrediction = true,
+	local healPrediction = { order = nextOrder(),
+		type = "toggle",
+		name = "Heal Prediction",
+	}
 	-- level = true,
 	local level = { order = nextOrder(),
 		type = "toggle",
@@ -281,6 +286,7 @@ do --{{{ Module:MakeSectionArgs()
 	section.portraitW = portraitW
 	section.portraitH = portraitH
 	section.leftToRight = leftToRight
+	section.healPrediction = healPrediction
 	section.level = level
 	section.embedLevelAndClassIcon = embedLevelAndClassIcon
 	section.classIcon = classIcon
