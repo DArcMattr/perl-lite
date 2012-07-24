@@ -106,6 +106,18 @@ do --{{{ Module:MakeSectionArgs()
 		name = "Nested Alpha",
 	}
 	-- rangeAlphaCoef = false,
+	-- sounds = false,
+	local sounds = { order = nextOrder(),
+		type = "select",
+		name = "Sounds",
+		values = { [falseStr]="Off", Master="Master", SFX="SFX" },
+		get = generic_get_style_or_false,
+		set = generic_set_style_or_false,
+		disabled = function(info)
+			local style = info[#info-1]
+			return (style ~= "target" and style ~= "focus")
+		end,
+	}
 	-- portrait = false,
 	local portrait = { order = nextOrder(),
 		type = "select",
@@ -293,6 +305,7 @@ do --{{{ Module:MakeSectionArgs()
 	section.alpha = alpha
 	section.nestedAlpha = nestedAlpha
 	-- section.rangeAlphaCoef = rangeAlphaCoef
+	section.sounds = sounds
 	section.portrait = portrait
 	section.portraitW = portraitW
 	section.portraitH = portraitH

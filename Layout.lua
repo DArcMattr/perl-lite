@@ -62,6 +62,7 @@ local basicStyle = {
 	alpha = 216,
 	nestedAlpha = true,
 	rangeAlphaCoef = false,
+	sounds = false,
 	portrait = false,
 	portraitW = 60,
 	portraitH = 62,
@@ -137,6 +138,7 @@ local stylePrototype = {
 		healthFontSize = 10,
 	},
 	target = {
+		sounds = "Master",
 		portrait = "3d",
 		combatFeedback = true,
 		leftToRight = false,
@@ -903,6 +905,16 @@ local function LayoutCombatFeedback(self, c, initial)
 	end
 end
 
+local function LayoutSounds(self, c, initial)
+	if c.sounds then
+		self.SoundOnSelect = self.SoundOnSelect or {}
+		self.SoundOnSelect.channel = c.sounds
+		if not initial then self:EnableElement("SoundOnSelect") end
+	elseif self.SoundOnSelect then
+		self:DisableElement("SoundOnSelect")
+	end
+end
+
 local Layout = function(self, initial)
 	local c = self.styleConf
 
@@ -980,6 +992,7 @@ local Layout = function(self, initial)
 	LayoutClassIcon(self, c, initial)
 	LayoutEliteFrame(self, c, initial)
 	LayoutRaceFrame(self, c, initial)
+	LayoutSounds(self, c, initial)
 end
 
 local eliteTypeDisplay = {
