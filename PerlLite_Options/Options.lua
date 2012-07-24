@@ -52,13 +52,18 @@ end
 
 local function generic_get_style_or_false(info)
 	local val = generic_get_style(info)
-	return (val ~= false) and val or falseStr
+	if val == false then val = falseStr end
+	return val
 end
 
 local function generic_set_style(info, val)
 	local setting, style = info[#info], info[#info-1]
 	local prototypeVal = Core.Layout.stylePrototype[style][setting]
-	profile[style][setting] = (val ~= prototypeVal) and val or nil
+	if val ~= prototypeVal then
+		profile[style][setting] = val
+	else
+		profile[style][setting] = nil
+	end
 	Core.Layout.style[style][setting] = val
 	if style == "party" then
 		for i = 1,4 do
@@ -75,7 +80,8 @@ local function generic_set_style(info, val)
 end
 
 local function generic_set_style_or_false(info, val)
-	return generic_set_style(info, (val ~= falseStr) and val or false)
+	if val == falseStr then val = false end
+	return generic_set_style(info, val)
 end
 --}}}
 
