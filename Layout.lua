@@ -878,7 +878,7 @@ local function LayoutHealPrediction(self, c, initial)
 		self.HealPrediction:SetStatusBarColor(0, 1, 1)
 		self.HealPrediction:SetPoint("TOPLEFT", self.Health, 0, -2)
 		self.HealPrediction:SetPoint("BOTTOMRIGHT", self.Health, 0, 2)
-	elseif self.Leader then
+	elseif self.HealPrediction then
 		self:DisableElement("HealPrediction")
 		self.HealPrediction:Hide()
 	end
