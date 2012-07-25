@@ -891,18 +891,11 @@ end
 local function LayoutCombatFeedback(self, c, initial)
 	if c.combatFeedback then
 		if not self.SimpleCombatFeedback then
-			self.SimpleCombatFeedback = self:CreateFontString(nil, "OVERLAY", "NumberFontNormalHuge")
+			self.SimpleCombatFeedback = self.NameFrame:CreateFontString(nil, "OVERLAY", "NumberFontNormalHuge")
 		end
 		if not initial then self:EnableElement("SimpleCombatFeedback") end
 		self.SimpleCombatFeedback:ClearAllPoints()
-		if c.portrait == "3d" then
-			self.SimpleCombatFeedback:SetParent(self.Portrait)
-		elseif c.portrait == "2d" then
-			self.SimpleCombatFeedback:SetParent(self.PortraitFrame)
-		else
-			self.SimpleCombatFeedback:SetParent(self.NameFrame)
-		end
-		self.SimpleCombatFeedback:SetPoint("CENTER")
+		self.SimpleCombatFeedback:SetPoint("CENTER", c.portrait and self.PortraitFrame or self.NameFrame)
 	elseif self.SimpleCombatFeedback then
 		self:DisableElement("SimpleCombatFeedback")
 		self.SimpleCombatFeedback:Hide()
