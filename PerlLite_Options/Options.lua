@@ -119,6 +119,26 @@ do --{{{ Module:MakeSectionArgs()
 			local style = info[#info-1]
 			return (style ~= "target" and style ~= "focus")
 		end,
+		hidden = function(info)
+			local style = info[#info-1]
+			return (style == "player")
+		end,
+	}
+	-- pvpSound = false,
+	local pvpSound = { order = nextOrder(),
+		type = "select",
+		name = "PvP Sound",
+		values = sound_values,
+		get = generic_get_style_or_false,
+		set = generic_set_style_or_false,
+		disabled = function(info)
+			local style = info[#info-1]
+			return (style ~= "player")
+		end,
+		hidden = function(info)
+			local style = info[#info-1]
+			return (style ~= "player")
+		end,
 	}
 	-- portrait = false,
 	local portrait = { order = nextOrder(),
@@ -308,6 +328,7 @@ do --{{{ Module:MakeSectionArgs()
 	section.nestedAlpha = nestedAlpha
 	-- section.rangeAlphaCoef = rangeAlphaCoef
 	section.sounds = sounds
+	section.pvpSound = pvpSound
 	section.portrait = portrait
 	section.portraitW = portraitW
 	section.portraitH = portraitH

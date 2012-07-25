@@ -7,6 +7,7 @@
 
 	<Script file="elements\classicon.lua" />
 	<Script file="elements\level.lua" />
+	<Script file="elements\pvpsound.lua" />
 	<Script file="elements\pvptimer.lua" />
 	<Script file="elements\simplecombatfeedback.lua" />
 	<Script file="elements\soundonselect.lua" />

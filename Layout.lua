@@ -63,6 +63,7 @@ local basicStyle = {
 	nestedAlpha = true,
 	rangeAlphaCoef = false,
 	sounds = false,
+	pvpSound = false,
 	portrait = false,
 	portraitW = 60,
 	portraitH = 62,
@@ -114,6 +115,7 @@ local basicStyle = {
 local stylePrototype = {
 	player = {
 		nestedAlpha = false,
+		pvpSound = "Master",
 		portrait = "3d",
 		combatFeedback = true,
 		pvpIconSize = 30,
@@ -909,6 +911,13 @@ local function LayoutSounds(self, c, initial)
 		if not initial then self:EnableElement("SoundOnSelect") end
 	elseif self.SoundOnSelect then
 		self:DisableElement("SoundOnSelect")
+	end
+	if c.pvpSound then
+		self.PvPSound = self.PvPSound or {}
+		self.PvPSound.channel = c.pvpSound
+		if not initial then self:EnableElement("PvPSound") end
+	elseif self.PvPSound then
+		self:DisableElement("PvPSound")
 	end
 end
 
