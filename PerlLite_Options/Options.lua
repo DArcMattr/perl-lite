@@ -47,6 +47,13 @@ local point_values = {
 
 local sound_values = { [falseStr]="Off", Master="Master", SFX="SFX" }
 
+local valMaxFormatters_values = {}
+do
+	for i,_ in next, Core.Layout.valMaxFormatters do
+		valMaxFormatters_values[i] = i
+	end
+end
+
 local function generic_get_style(info)
 	local setting, style = info[#info], info[#info-1]
 	return Core.Layout.style[style][setting]
@@ -261,6 +268,18 @@ do --{{{ Module:MakeSectionArgs()
 		name = "Power Bar Height",
 		min = 0, max = 50, step = 1,
 	}
+	-- healthFormat = "val/max",
+	local healthFormat = { order = nextOrder(),
+		type = "select",
+		name = "Health Format",
+		values = valMaxFormatters_values,
+	}
+	-- powerFormat = "val/max",
+	local powerFormat = { order = nextOrder(),
+		type = "select",
+		name = "Power Format",
+		values = valMaxFormatters_values,
+	}
 	-- portraitPadding = -3,
 	local portraitPadding = { order = nextOrder(),
 		type = "range",
@@ -351,6 +370,8 @@ do --{{{ Module:MakeSectionArgs()
 	-- section.statTagH = statTagH
 	section.healthH = healthH
 	section.powerH = powerH
+	section.healthFormat = healthFormat
+	section.powerFormat = powerFormat
 	section.portraitPadding = portraitPadding
 	section.nameFontSize = nameFontSize
 	section.tagFontSize = tagFontSize

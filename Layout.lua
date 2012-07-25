@@ -108,8 +108,10 @@ local basicStyle = {
 	tagFontSize = 10,
 	healthH = 20,
 	healthFontSize = 12,
+	healthFormat = "val/max",
 	powerH = 10,
 	powerFontSize = 10,
+	powerFormat = "val/max",
 	portraitPadding = -3,
 }
 local stylePrototype = {
@@ -123,6 +125,7 @@ local stylePrototype = {
 		leaderIcon = "TOP",
 		masterLooterIcon = "TOP",
 		combatIcon = "RIGHT",
+		powerFormat = "val/max full",
 	},
 	pet = {
 		nestedAlpha = false,
@@ -138,6 +141,7 @@ local stylePrototype = {
 		statsW = 80,
 		healthH = 14,
 		healthFontSize = 10,
+		powerFormat = "val/max full",
 	},
 	target = {
 		sounds = "Master",
@@ -242,7 +246,8 @@ local menu = function(self)
 	end
 end
 
-local function formatNumberAndUnits(fontString, val, maxVal)
+Module.valMaxFormatters = {} --{{{
+Module.valMaxFormatters["val/max"] = function(fontString, val, maxVal)
 	-- I'm not happy with how similar this looks to XPerl_SetValuedText, but there's
 	-- no other way to do it. I could throw the :SetFormattedText optimization out and
 	-- use tags, but that's a silly thing to do just to make the function look different.
@@ -283,6 +288,15 @@ local function formatNumberAndUnits(fontString, val, maxVal)
 	end
 end
 
+Module.valMaxFormatters["val/max full"] = function(fontString, val, maxVal)
+	return fontString:SetFormattedText("%d/%d", val, maxVal)
+end
+
+Module.valMaxFormatters["-missing or 0"] = function(fontString, val, maxVal)
+	return fontString:SetFormattedText("%d", (val - maxVal))
+end
+--}}}
+
 local HealthOverride = function(self, event, unit, powerType)
 	if self.unit ~= unit then return end
 	local name = self.Name
@@ -314,11 +328,7 @@ local HealthOverride = function(self, event, unit, powerType)
 	health.disconnected = disconnected
 
 	-- health text
-	if unit == "player" then
-		health.text:SetFormattedText("%d", (val - maxVal)) -- 0 or negative
-	else
-		formatNumberAndUnits(health.text, val, maxVal)
-	end
+	health.text:formatValMax(val, maxVal)
 
 	-- health tag
 	local tag
@@ -405,11 +415,7 @@ local PowerOverride = function(self, event, unit)
 		power.text:Hide()
 		power.tag:Hide()
 	else
-		if unit == "player" then
-			power.text:SetFormattedText("%d/%d", val, maxVal)
-		else
-			formatNumberAndUnits(power.text, val, maxVal)
-		end
+		power.text:formatValMax(val, maxVal)
 		power.tag:SetFormattedText("%d%%", (100 * val / maxVal))
 		power.text:Show()
 		power.tag:Show()
@@ -860,12 +866,14 @@ local function LayoutNameAndStats(self, c, initial)
 	self.StatsFrame:SetSize(c.statsW, c.healthH + c.powerH + 10)
 
 	UpdateBarTextures(self.Health)
+	self.Health.text.formatValMax = Module.valMaxFormatters[c.healthFormat]
 	self.Health.text:SetFont(GameFontNormal:GetFont(), c.healthFontSize)
 	self.Health.tag:SetFont(GameFontNormal:GetFont(), c.tagFontSize)
 	self.Health:SetHeight(c.healthH)
 	self.Health.tag:SetSize(c.statTagW, c.statTagH)
 
 	UpdateBarTextures(self.Power)
+	self.Power.text.formatValMax = Module.valMaxFormatters[c.powerFormat]
 	self.Power.text:SetFont(GameFontNormal:GetFont(), c.powerFontSize)
 	self.Power.tag:SetFont(GameFontNormal:GetFont(), c.tagFontSize)
 	self.Power.tag:SetSize(c.statTagW, c.statTagH)
