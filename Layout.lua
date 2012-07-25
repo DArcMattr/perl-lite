@@ -57,6 +57,16 @@ local wipe = wipe
 --}}}
 
 --{{{ styles
+--[[
+	basicStyle
+		player
+		pet
+		target
+			focus
+		targettarget
+			focustarget
+		party
+--]]
 local basicStyle = {
 	scale = 1,
 	alpha = 216,
@@ -159,6 +169,10 @@ local stylePrototype = {
 		classIcon = false,
 		raidIcon = "RIGHT",
 	},
+	focus = { -- inheriets target
+	},
+	focustarget = { -- inheriets targettarget
+	},
 	party = {
 		rangeAlphaCoef = 0.5,
 		combatFeedback = true,
@@ -191,9 +205,12 @@ do
 		self[key] = val
 		return val
 	end
+	setmetatable(stylePrototype.focus, { __index=stylePrototype.target })
+	setmetatable(stylePrototype.focustarget, { __index=stylePrototype.targettarget })
 	for s,_ in next, stylePrototype do
-		-- Set up indexing.
-		setmetatable(stylePrototype[s], inheritsBasicStyle) -- All prototypes index basic style.
+		if not getmetatable(stylePrototype[s]) then
+			setmetatable(stylePrototype[s], inheritsBasicStyle) -- All prototypes index basic style, directly or indirectly.
+		end
 		style[s] = setmetatable({}, { __prototype = stylePrototype[s], __index = cachingIndexFunction }) -- New table, indexing prototype.
 	end
 end
@@ -1177,6 +1194,8 @@ function Module:OnInitialize()
 		spawnHelper(self, "pet")
 		spawnHelper(self, "target")
 		spawnHelper(self, "targettarget")
+		spawnHelper(self, "focus")
+		spawnHelper(self, "focustarget")
 
 		self:SetActiveStyle(_addonName)
 		local party = self:SpawnHeader(_addonName.."_Party", nil, "raid,party",

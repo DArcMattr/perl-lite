@@ -62,6 +62,18 @@ Addon.defaults = {
 			attachX = -15,
 			attachY = -22,
 		},
+		focus = {
+			scale = 0.8,
+			attachPoint = "LEFT",
+			attachX = 256,
+			attachY = 148,
+		},
+		focustarget = {
+			scale = 0.7,
+			attachPoint = "LEFT",
+			attachX = 450,
+			attachY = 151,
+		},
 		party = {
 			scale = 0.8,
 			attachPoint = "TOPLEFT",

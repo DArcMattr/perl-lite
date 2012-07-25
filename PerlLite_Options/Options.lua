@@ -436,8 +436,10 @@ function Module:OnInitialize()
 	options.args.player = self:MakeSection(2, "Player")
 	options.args.pet = self:MakeSection(3, "Pet")
 	options.args.target = self:MakeSection(4, "Target")
-	options.args.targettarget = self:MakeSection(5, "TargetTarget")
-	options.args.party = self:MakeSection(6, "Party")
+	options.args.focus = self:MakeSection(5, "Focus")
+	options.args.targettarget = self:MakeSection(6, "TargetTarget")
+	options.args.focustarget = self:MakeSection(7, "FocusTarget")
+	options.args.party = self:MakeSection(8, "Party")
 	options.args.profile = LibStub("AceDBOptions-3.0"):GetOptionsTable(Core.db) -- Ace3 Profiles
 
 	-- Remove any stub in the Interface options, before adding the real one.
