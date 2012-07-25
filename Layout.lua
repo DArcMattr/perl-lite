@@ -451,13 +451,17 @@ local HealPredictionOverride = function (self, event, unit)
 	if self.unit ~= unit then return end
 	local hp = self.HealPrediction
 	local incoming = UnitGetIncomingHeals(unit) or 0
-	local health, maxHealth = UnitHealth(unit), UnitHealthMax(unit)
-	if health + incoming > maxHealth then
-		incoming = maxHealth - health
+	if incoming > 0 then
+		local health, maxHealth = UnitHealth(unit), UnitHealthMax(unit)
+		if health + incoming > maxHealth then
+			incoming = maxHealth - health
+		end
+		hp:SetMinMaxValues(0, maxHealth)
+		hp:SetValue(health + incoming)
+		hp:Show()
+	else
+		hp:Hide()
 	end
-	hp:SetMinMaxValues(0, maxHealth)
-	hp:SetValue(health + incoming)
-	hp:Show()
 end
 
 local CombatOverride = function(self, event)
