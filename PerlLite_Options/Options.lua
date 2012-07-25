@@ -45,6 +45,8 @@ local point_values = {
 	TOPRIGHT="TOPRIGHT", RIGHT="RIGHT", BOTTOMRIGHT="BOTTOMRIGHT"
 }
 
+local sound_values = { [falseStr]="Off", Master="Master", SFX="SFX" }
+
 local function generic_get_style(info)
 	local setting, style = info[#info], info[#info-1]
 	return Core.Layout.style[style][setting]
@@ -110,7 +112,7 @@ do --{{{ Module:MakeSectionArgs()
 	local sounds = { order = nextOrder(),
 		type = "select",
 		name = "Sounds",
-		values = { [falseStr]="Off", Master="Master", SFX="SFX" },
+		values = sound_values,
 		get = generic_get_style_or_false,
 		set = generic_set_style_or_false,
 		disabled = function(info)
