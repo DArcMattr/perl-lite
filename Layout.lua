@@ -1058,6 +1058,7 @@ local Shared = function(self, unit, isSingle)
 
 	DoNameFrame(self, unit, isSingle)
 	DoStatsFrame(self, unit, isSingle)
+	self.NameFrame:SetFrameLevel(self.StatsFrame:GetFrameLevel() + 2) -- NameFrame is higher, for its icons.
 
 	self.colors = Module.colors
 	self.PostUpdate = PostUpdate
