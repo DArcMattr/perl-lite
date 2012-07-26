@@ -234,6 +234,8 @@ local backdrop_black255 = {
 	edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", edgeSize = 16,
 	insets = {left = 4, right = 4, top = 4, bottom = 4},
 }
+
+local grad1r, grad1g, grad1b, grad1a, grad2r, grad2g, grad2b, grad2a
 --}}} textures & backdrops
 
 function Module:ProfileChanged()
@@ -245,6 +247,12 @@ function Module:ProfileChanged()
 				settings[i] = j
 			end
 		end
+	end
+	do -- color upvalues
+		local color = profile.color
+		local s,e = color.gradientStart, color.gradientEnd
+		grad1r, grad1g, grad1b, grad1a = s[1]/255, s[2]/255, s[3]/255, s[4]/255
+		grad2r, grad2g, grad2b, grad2a = e[1]/255, e[2]/255, e[3]/255, e[4]/255
 	end
 end
 
@@ -547,6 +555,26 @@ local function SetStandardBackdrop(frame, backdrop)
 	frame:SetBackdropBorderColor(.5, .5, .5, 1)
 end
 
+local function UpdateFrameGradient(frame)
+	-- I hate how this works. I followed the traditional implementation because I want users to be happy
+	-- with what they're used to, but ChatFrameBackground is slightly off-white: (248, 252, 248, 255).
+	local c = profile.color
+	if c.gradient then
+		if not frame.gradient then
+			frame.gradient = frame:CreateTexture(nil, "BORDER")
+			frame.gradient:SetTexture([[Interface\ChatFrame\ChatFrameBackground]])
+			frame.gradient:SetBlendMode("ADD")
+		end
+		local ins = frame:GetBackdrop().insets
+		frame.gradient:SetPoint("TOPLEFT", ins.left, -ins.top)
+		frame.gradient:SetPoint("BOTTOMRIGHT", -ins.right, ins.bottom)
+		frame.gradient:SetGradientAlpha(c.gradient, grad1r, grad1g, grad1b, grad1a, grad2r, grad2g, grad2b, grad2a)
+		frame.gradient:Show()
+	elseif frame.gradient then
+		frame.gradient:Hide()
+	end
+end
+
 local pointFlipH = {
 	-- left -> right
 	["TOPLEFT"] = "TOPRIGHT",
@@ -723,6 +751,7 @@ local function LayoutPortrait(self, c, initial)
 		SetStandardBackdrop(self.PortraitFrame, backdrop_black255)
 	end
 	if self.PortraitFrame then
+		UpdateFrameGradient(self.PortraitFrame)
 		local oldPortraitType = self.Portrait and (self.Portrait:GetObjectType() == "PlayerModel" and "3d" or "2d") or false
 		if c.portrait ~= oldPortraitType then
 			if oldPortraitType then
@@ -770,6 +799,7 @@ local function LayoutLevel(self, c, initial)
 			self.LevelFrame:SetFrameLevel(0) -- So we don't cover the ClassIcon when it's embedded.
 			SetStandardBackdrop(self.LevelFrame, backdrop_gray125)
 		end
+		UpdateFrameGradient(self.LevelFrame)
 		self.LevelFrame:ClearAllPoints()
 		if specialLevelFrame then
 			self.LevelFrame:SetSize(30, c.healthH + c.powerH + 10)
@@ -840,6 +870,7 @@ local function LayoutEliteFrame(self, c, initial)
 			text:SetPoint("TOPLEFT")
 			text:SetPoint("BOTTOMRIGHT", 0, 1)
 		end
+		UpdateFrameGradient(self.EliteFrame)
 		self.EliteFrame:SetSize(38, 20)
 		self.EliteFrame:ClearAllPoints()
 		attach(self, "EliteFrame", "BOTTOMRIGHT", "corner", "BOTTOMLEFT", 2, 0)
@@ -859,6 +890,7 @@ local function LayoutRaceFrame(self, c, initial)
 			text:SetPoint("BOTTOMRIGHT")
 			text:SetTextColor(1, 1, 1)
 		end
+		UpdateFrameGradient(self.RaceFrame)
 		self.RaceFrame:SetSize(68, 22)
 		self.RaceFrame:ClearAllPoints()
 		-- positioning done in PostUpdate
@@ -868,6 +900,7 @@ local function LayoutRaceFrame(self, c, initial)
 end
 
 local function LayoutNameAndStats(self, c, initial)
+	UpdateFrameGradient(self.NameFrame)
 	self.NameFrame:ClearAllPoints()
 	self.NameFrame:SetSize(c.nameW, c.nameH)
 	self.Name:SetFont(GameFontNormal:GetFont(), c.nameFontSize)
@@ -879,6 +912,7 @@ local function LayoutNameAndStats(self, c, initial)
 		self.Name:SetJustifyH("CENTER")
 	end
 
+	UpdateFrameGradient(self.StatsFrame)
 	self.StatsFrame:ClearAllPoints()
 	self.StatsFrame:SetSize(c.statsW, c.healthH + c.powerH + 10)
 

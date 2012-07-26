@@ -38,6 +38,11 @@ local profile
 Addon.defaults = {
 	profile = {
 		barTexture = Addon.texturePath..[[Smooth]], -- "Interface\\TargetingFrame\\UI-TargetingFrame-BarFill"
+		color = {
+			gradient = "VERTICAL",
+			gradientStart = { 26, 26, 26, 0 },
+			gradientEnd = { 64, 64, 64, 255},
+		},
 		player = {
 			scale = 0.9,
 			attachPoint = "TOPLEFT",
