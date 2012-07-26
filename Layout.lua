@@ -219,18 +219,6 @@ Module.stylePrototype = stylePrototype
 Module.style = style
 --}}}
 
-function Module:ProfileChanged()
-	profile = Core.db.profile
-	for styleName, settings in next, style do
-		wipe(settings) -- 1. wipe old settings for this style
-		if profile[styleName] then -- 2. copy in settings from profile
-			for i,j in next, profile[styleName] do
-				settings[i] = j
-			end
-		end
-	end
-end
-
 --{{{ textures & backdrops
 local classIconsBg = [[Interface\Glues\CharacterCreate\UI-CharacterCreate-Classes]] -- has black and some border around the image
 local classIconsAlpha = [[Interface\WorldStateFrame\Icons-Classes]] -- has transparency around the image
@@ -247,6 +235,18 @@ local backdrop_black255 = {
 	insets = {left = 4, right = 4, top = 4, bottom = 4},
 }
 --}}} textures & backdrops
+
+function Module:ProfileChanged()
+	profile = Core.db.profile
+	for styleName, settings in next, style do
+		wipe(settings) -- 1. wipe old settings for this style
+		if profile[styleName] then -- 2. copy in settings from profile
+			for i,j in next, profile[styleName] do
+				settings[i] = j
+			end
+		end
+	end
+end
 
 local menu = function(self)
 	local unit = self.unit -- self.unit:sub(1, -2)
