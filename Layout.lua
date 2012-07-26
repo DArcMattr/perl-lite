@@ -254,6 +254,7 @@ function Module:ProfileChanged()
 		grad1r, grad1g, grad1b, grad1a = s[1]/255, s[2]/255, s[3]/255, s[4]/255
 		grad2r, grad2g, grad2b, grad2a = e[1]/255, e[2]/255, e[3]/255, e[4]/255
 	end
+	self:LayoutAll()
 end
 
 local menu = function(self)
@@ -1158,8 +1159,10 @@ local DoAuras = function(self)
 end
 
 function Module:LayoutAll()
-	for i = 1,#oUF.objects do
-		oUF.objects[i]:Layout()
+	if oUF then
+		for i = 1,#oUF.objects do
+			oUF.objects[i]:Layout()
+		end
 	end
 end
 
