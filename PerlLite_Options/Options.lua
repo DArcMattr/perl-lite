@@ -21,6 +21,7 @@ local profile
 -- GLOBALS: InterfaceAddOnsList_Update
 -- GLOBALS: LibStub
 -- GLOBALS: tremove
+local math_round = math.round
 --}}}
 
 function Module:ProfileChanged()
@@ -33,6 +34,11 @@ end
 
 function Module:CloseOptions()
 	LibStub("AceConfigDialog-3.0"):Close(_coreAddonName)
+end
+
+local function normalize255(n)
+	local val = math_round(n * 255)
+	return val
 end
 
 --{{{ generics
@@ -430,6 +436,87 @@ function Module:OnInitialize()
 					end
 				end,
 				width = "half",
+			},
+			gradient = {
+				type = "select",
+				name = "Gradient",
+				order = 2,
+				values = { [falseStr]="None", VERTICAL="Vertical", HORIZONTAL="Horizontal" },
+				get = function(info)
+					local val = profile.color.gradient
+					if val == false then val = falseStr end
+					return val
+				end,
+				set = function(info, val)
+					if val == falseStr then val = false end
+					profile.color.gradient = val
+					Core.Layout:ProfileChanged()
+				end,
+			},
+			gradientStart = {
+				type = "color",
+				hasAlpha = true,
+				name = function(info)
+					local grad = profile.color.gradient
+					if grad == "VERTICAL" then return "Gradient Bottom"
+					elseif grad == "HORIZONTAL" then return "Gradient Left"
+					else return "Gradient Color 1"
+					end
+				end,
+				width = "half",
+				order = 3,
+				get = function(info)
+					local gc = profile.color[info[#info]]
+					return gc[1]/255, gc[2]/255, gc[3]/255, gc[4]/255
+				end,
+				set = function(info, r, g, b, a)
+					local gc = profile.color[info[#info]]
+					gc[1],gc[2],gc[3],gc[4] = normalize255(r), normalize255(g), normalize255(b), normalize255(a)
+					Core.Layout:ProfileChanged()
+				end,
+				disabled = function(info)
+					return not profile.color.gradient
+				end,
+			},
+			gradientEnd = {
+				type = "color",
+				hasAlpha = true,
+				name = function(info)
+					local grad = profile.color.gradient
+					if grad == "VERTICAL" then return "Gradient Top"
+					elseif grad == "HORIZONTAL" then return "Gradient Right"
+					else return "Gradient Color 2"
+					end
+				end,
+				width = "half",
+				order = 4,
+				get = function(info)
+					local gc = profile.color[info[#info]]
+					return gc[1]/255, gc[2]/255, gc[3]/255, gc[4]/255
+				end,
+				set = function(info, r, g, b, a)
+					local gc = profile.color[info[#info]]
+					gc[1],gc[2],gc[3],gc[4] = normalize255(r), normalize255(g), normalize255(b), normalize255(a)
+					Core.Layout:ProfileChanged()
+				end,
+				disabled = function(info)
+					return not profile.color.gradient
+				end,
+			},
+			gradientSwap = {
+				type = "execute",
+				name = "Reverse Gradient",
+				order = 5,
+				func = function(info)
+					local x,y = profile.color.gradientStart, profile.color.gradientEnd
+					local r,g,b,a = x[1],x[2],x[3],x[4]
+					x[1],x[2],x[3],x[4] = y[1],y[2],y[3],y[4]
+					y[1],y[2],y[3],y[4] = r,g,b,a
+					Core.Layout:ProfileChanged()
+				end,
+				disabled = function(info)
+					return not profile.color.gradient
+				end,
 			},
 		}
 	}
