@@ -1130,34 +1130,6 @@ local Shared = function(self, unit, isSingle)
 	self:Layout(true)
 end
 
-local DoAuras = function(self)
-	-- Buffs
-	local Buffs = CreateFrame("Frame", nil, self)
-	Buffs:SetPoint("BOTTOM", self, "TOP")
-	Buffs:SetPoint"LEFT"
-	Buffs:SetPoint"RIGHT"
-	Buffs:SetHeight(17)
-
-	Buffs.size = 17
-	Buffs.num = floor(self:GetWidth() / Buffs.size + .5)
-
-	self.Buffs = Buffs
-
-	-- Debuffs
-	local Debuffs = CreateFrame("Frame", nil, self)
-	Debuffs:SetPoint("TOP", self, "BOTTOM")
-	Debuffs:SetPoint"LEFT"
-	Debuffs:SetPoint"RIGHT"
-	Debuffs:SetHeight(20)
-
-	Debuffs.initialAnchor = "TOPLEFT"
-	Debuffs.size = 20
-	Debuffs.showDebuffType = true
-	Debuffs.num = floor(self:GetWidth() / Debuffs.size + .5)
-
-	self.Debuffs = Debuffs
-end
-
 function Module:LayoutAll()
 	if oUF then
 		for i = 1,#oUF.objects do
