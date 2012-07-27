@@ -518,8 +518,14 @@ local RestingOverride = function(self, event)
 	end
 end
 
+local function CreateFrameSameLevel(frameType, name, parent, template)
+	local newf = CreateFrame(frameType, name, parent, template)
+	newf:SetFrameLevel(parent:GetFrameLevel())
+	return newf
+end
+
 local function CreateStatusBar(parent)
-	local bar = CreateFrame("StatusBar", nil, parent)
+	local bar = CreateFrameSameLevel("StatusBar", nil, parent)
 
 	-- bg texture
 	local bg = bar:CreateTexture(nil, "BORDER")
@@ -550,10 +556,12 @@ local function UpdateBarTextures(bar)
 	bar.bg:SetTexture(profile.barTexture)
 end
 
-local function SetStandardBackdrop(frame, backdrop)
-	frame:SetBackdrop(backdrop or backdrop_gray125)
-	frame:SetBackdropColor(0, 0, 0, 1)
-	frame:SetBackdropBorderColor(.5, .5, .5, 1)
+local function CreateBorderedChildFrame(parent, backdrop)
+	local newf = CreateFrameSameLevel("Frame", nil, parent)
+	newf:SetBackdrop(backdrop or backdrop_gray125)
+	newf:SetBackdropColor(0, 0, 0, 1)
+	newf:SetBackdropBorderColor(.5, .5, .5, 1)
+	return newf
 end
 
 local function UpdateFrameGradient(frame)
@@ -603,9 +611,8 @@ end
 
 local function DoNameFrame(unitFrame, unit, isSingle)
 	-- NameFrame
-	local NameFrame = CreateFrame("Frame", nil, unitFrame)
+	local NameFrame = CreateBorderedChildFrame(unitFrame)
 	unitFrame.NameFrame = NameFrame
-	SetStandardBackdrop(NameFrame)
 
 	local Name = NameFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	unitFrame.Name = Name
@@ -616,9 +623,8 @@ end
 
 local function DoStatsFrame(unitFrame, unit, isSingle)
 	-- StatsFrame
-	local StatsFrame = CreateFrame("Frame", nil, unitFrame)
+	local StatsFrame = CreateBorderedChildFrame(unitFrame)
 	unitFrame.StatsFrame = StatsFrame
-	SetStandardBackdrop(StatsFrame)
 
 	-- Health
 	local Health = CreateStatusBar(StatsFrame)
@@ -643,7 +649,7 @@ end
 local function LayoutPvPIcon(self, c, initial)
 	if c.pvpIcon then
 		if not self.PvP then
-			self.PvP = self.NameFrame:CreateTexture(nil, "ARTWORK")
+			self.PvP = self.NameFrame:CreateTexture(nil, "OVERLAY")
 			self.PvP:SetTexCoord(0, 42/64, 0, 42/64) -- icon is 42x42 in a 64x64 file
 		end
 		if not initial then self:EnableElement("PvP") end
@@ -670,7 +676,7 @@ end
 local function LayoutRaidIcon(self, c, initial)
 	if c.raidIcon then
 		if not self.RaidIcon then
-			self.RaidIcon = self.NameFrame:CreateTexture(nil, "ARTWORK")
+			self.RaidIcon = self.NameFrame:CreateTexture(nil, "OVERLAY")
 		end
 		if not initial then self:EnableElement("RaidIcon") end
 		self.RaidIcon:SetSize(c.raidIconSize, c.raidIconSize)
@@ -684,7 +690,7 @@ end
 local function LayoutLeaderIcon(self, c, initial)
 	if c.leaderIcon then
 		if not self.Leader then
-			self.Leader = self.NameFrame:CreateTexture(nil, "ARTWORK")
+			self.Leader = self.NameFrame:CreateTexture(nil, "OVERLAY")
 		end
 		if not initial then self:EnableElement("Leader") end
 		self.Leader:SetSize(c.leaderIconSize, c.leaderIconSize)
@@ -698,7 +704,7 @@ end
 local function LayoutMasterLooterIcon(self, c, initial)
 	if c.masterLooterIcon then
 		if not self.MasterLooter then
-			self.MasterLooter = self.NameFrame:CreateTexture(nil, "ARTWORK")
+			self.MasterLooter = self.NameFrame:CreateTexture(nil, "OVERLAY")
 		end
 		if not initial then self:EnableElement("MasterLooter") end
 		self.MasterLooter:SetSize(c.masterLooterIconSize, c.masterLooterIconSize)
@@ -712,11 +718,11 @@ end
 local function LayoutCombatIcon(self, c, initial)
 	if c.combatIcon then
 		if not self.Combat then
-			self.Combat = self.NameFrame:CreateTexture(nil, "ARTWORK")
+			self.Combat = self.NameFrame:CreateTexture(nil, "OVERLAY")
 			self.Combat:SetTexture([[Interface\CharacterFrame\UI-StateIcon]])
 			self.Combat:SetTexCoord(31/63, 63/63, 0/63, 31/63)
 			self.Combat.Override = CombatOverride
-			self.Resting = self.NameFrame:CreateTexture(nil, "ARTWORK")
+			self.Resting = self.NameFrame:CreateTexture(nil, "OVERLAY")
 			self.Resting:SetTexture([[Interface\CharacterFrame\UI-StateIcon]])
 			self.Resting:SetTexCoord(0/63, 31/63, 0/63, 31/63)
 			self.Resting.Override = RestingOverride
@@ -748,8 +754,7 @@ end
 
 local function LayoutPortrait(self, c, initial)
 	if c.portrait and not self.PortraitFrame then
-		self.PortraitFrame = CreateFrame("Frame", nil, self)
-		SetStandardBackdrop(self.PortraitFrame, backdrop_black255)
+		self.PortraitFrame = CreateBorderedChildFrame(self, backdrop_black255)
 	end
 	if self.PortraitFrame then
 		UpdateFrameGradient(self.PortraitFrame)
@@ -767,7 +772,7 @@ local function LayoutPortrait(self, c, initial)
 			end
 			if c.portrait then
 				if c.portrait == "3d" then
-					local _3d = self.PortraitFrame._3d or CreateFrame("PlayerModel", nil, self.PortraitFrame)
+					local _3d = self.PortraitFrame._3d or CreateFrameSameLevel("PlayerModel", nil, self.PortraitFrame)
 					_3d.PostUpdate = PortraitPostUpdate3D
 					self.Portrait = _3d
 				else
@@ -796,9 +801,7 @@ local function LayoutLevel(self, c, initial)
 	-- LevelFrame
 	if c.level or specialLevelFrame then
 		if not self.LevelFrame then
-			self.LevelFrame = CreateFrame("Frame", nil, self)
-			self.LevelFrame:SetFrameLevel(0) -- So we don't cover the ClassIcon when it's embedded.
-			SetStandardBackdrop(self.LevelFrame, backdrop_gray125)
+			self.LevelFrame = CreateBorderedChildFrame(self)
 		end
 		UpdateFrameGradient(self.LevelFrame)
 		self.LevelFrame:ClearAllPoints()
@@ -864,8 +867,7 @@ end
 local function LayoutEliteFrame(self, c, initial)
 	if c.eliteType then
 		if not self.EliteFrame then
-			self.EliteFrame = CreateFrame("Frame", nil, self)
-			SetStandardBackdrop(self.EliteFrame, backdrop_gray125)
+			self.EliteFrame = CreateBorderedChildFrame(self)
 			local text = self.EliteFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 			self.EliteFrame.text = text
 			text:SetPoint("TOPLEFT")
@@ -883,8 +885,7 @@ end
 local function LayoutRaceFrame(self, c, initial)
 	if c.npcRace then
 		if not self.RaceFrame then
-			self.RaceFrame = CreateFrame("Frame", nil, self)
-			SetStandardBackdrop(self.RaceFrame, backdrop_gray125)
+			self.RaceFrame = CreateBorderedChildFrame(self)
 			local text = self.RaceFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 			self.RaceFrame.text = text
 			text:SetPoint("TOPLEFT")
@@ -935,12 +936,12 @@ end
 local function LayoutHealPrediction(self, c, initial)
 	if c.healPrediction then
 		if not self.HealPrediction then
-			self.HealPrediction = CreateFrame("StatusBar", nil, self.StatsFrame)
+			self.HealPrediction = CreateFrameSameLevel("StatusBar", nil, self.StatsFrame)
 			self.HealPrediction.Override = HealPredictionOverride
-			self.HealPrediction:SetFrameLevel(self.Health:GetFrameLevel() - 1)
 		end
 		if not initial then self:EnableElement("HealPrediction") end
 		self.HealPrediction:SetStatusBarTexture(profile.barTexture)
+		self.HealPrediction:GetStatusBarTexture():SetDrawLayer("ARTWORK", -1)
 		self.HealPrediction:SetStatusBarColor(0, 1, 1)
 		self.HealPrediction:SetPoint("TOPLEFT", self.Health, 0, -2)
 		self.HealPrediction:SetPoint("BOTTOMRIGHT", self.Health, 0, 2)
@@ -953,7 +954,7 @@ end
 local function LayoutCombatFeedback(self, c, initial)
 	if c.combatFeedback then
 		if not self.SimpleCombatFeedback then
-			self.SimpleCombatFeedback = self.NameFrame:CreateFontString(nil, "OVERLAY", "NumberFontNormalHuge")
+			self.SimpleCombatFeedback = self:CreateFontString(nil, "OVERLAY", "NumberFontNormalHuge")
 		end
 		if not initial then self:EnableElement("SimpleCombatFeedback") end
 		self.SimpleCombatFeedback:ClearAllPoints()
@@ -1120,7 +1121,6 @@ local Shared = function(self, unit, isSingle)
 
 	DoNameFrame(self, unit, isSingle)
 	DoStatsFrame(self, unit, isSingle)
-	self.NameFrame:SetFrameLevel(self.StatsFrame:GetFrameLevel() + 2) -- NameFrame is higher, for its icons.
 
 	self.colors = Module.colors
 	self.PostUpdate = PostUpdate
