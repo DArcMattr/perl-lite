@@ -53,7 +53,6 @@ local function initTimer()
 	anim:SetOrder(1)
 	anim:SetScript("OnFinished", updateRegisteredFrames)
 	animGroup:SetLooping("REPEAT")
-	return animGroup
 end
 
 local function onEvent(self, event)
