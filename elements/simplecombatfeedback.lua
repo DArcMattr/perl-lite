@@ -1,7 +1,7 @@
 --[[-------------------------------------------------------------------------
 	SimpleCombatFeedback module for oUF
 	Copyright (C) 2012  Morsk
-	All Rights Reserved.
+	This file is available under the MIT license. Look for LICENSE.txt in its folder.
 
 	This 100% uses Blizzard's combat feedback code. It has an optimization
 	only to call Blizzard's OnUpdate handlers when feedback text is visible.

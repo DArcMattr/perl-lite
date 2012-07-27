@@ -1,7 +1,7 @@
 --[[-------------------------------------------------------------------------
 	PvPTimer module for oUF
 	Copyright (C) 2012  Morsk
-	All Rights Reserved.
+	This file is available under the MIT license. Look for LICENSE.txt in its folder.
 ---------------------------------------------------------------------------]]
 local parent, ns = ...
 local oUF = ns.oUF

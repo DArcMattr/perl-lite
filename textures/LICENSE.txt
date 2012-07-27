@@ -1,0 +1,11 @@
+This is licensing info for the textures/ folder.
+
+- Smooth.tga
+
+Like 200 different addons distribute this. I have no idea where it came from and what its licensing is. Ask someone else!
+
+- black255_32px.tga
+- gray125_32px.tga
+- thickborder.tga
+
+I (Morsker) made these in GIMP, and there are .xcf source files for them available in the repository. I grant anyone the right to use this work for any purpose, without any conditions, unless such conditions are required by law.
