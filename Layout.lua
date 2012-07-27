@@ -720,11 +720,11 @@ local function LayoutCombatIcon(self, c, initial)
 		if not self.Combat then
 			self.Combat = self.NameFrame:CreateTexture(nil, "OVERLAY")
 			self.Combat:SetTexture([[Interface\CharacterFrame\UI-StateIcon]])
-			self.Combat:SetTexCoord(31/63, 63/63, 0/63, 31/63)
+			self.Combat:SetTexCoord(32/64, 64/64, 0/64, 32/64)
 			self.Combat.Override = CombatOverride
 			self.Resting = self.NameFrame:CreateTexture(nil, "OVERLAY")
 			self.Resting:SetTexture([[Interface\CharacterFrame\UI-StateIcon]])
-			self.Resting:SetTexCoord(0/63, 31/63, 0/63, 31/63)
+			self.Resting:SetTexCoord(0/64, 32/64, 0/64, 32/64)
 			self.Resting.Override = RestingOverride
 		end
 		if not initial then self:EnableElement("Combat") end
