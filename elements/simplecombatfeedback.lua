@@ -4,21 +4,46 @@
 	This file is available under the MIT license. Look for LICENSE.txt in its folder.
 
 	This 100% uses Blizzard's combat feedback code. It has an optimization
-	only to call Blizzard's OnUpdate handlers when feedback text is visible.
-	An AnimationGroup for the fade in/out would be a better optimization.
-	Blizzard's CombatFeedback_OnCombatEvent does nothing but fading and can
-	be completely avoided if we have our own fading implementation.
+	that completely avoids Blizzard's OnUpdate handlers by using Animations
+	to perform the fade in/out. Blizzard's CombatFeedback_OnCombatEvent does
+	nothing but fading and can be completely avoided with our own fading
+	implementation.
 ---------------------------------------------------------------------------]]
 local parent, ns = ...
 local oUF = ns.oUF
 
+-- GLOBALS: COMBATFEEDBACK_FADEINTIME
+-- GLOBALS: COMBATFEEDBACK_FADEOUTTIME
+-- GLOBALS: COMBATFEEDBACK_HOLDTIME
 local CombatFeedback_OnCombatEvent = CombatFeedback_OnCombatEvent
-local CombatFeedback_OnUpdate = CombatFeedback_OnUpdate
-local CreateFrame = CreateFrame
-local next = next
+local rawget = rawget
 
-local displayedFeedback = {}
-local updateFrame
+local function hideMyParent(self)
+	return self:GetParent():Hide()
+end
+
+local animationPool = setmetatable({}, { -- lazy creation
+	__index = function(pool, scf)
+		local group = scf:CreateAnimationGroup()
+		do
+			local fadeIn = group:CreateAnimation("Alpha")
+			fadeIn:SetOrder(1)
+			fadeIn:SetDuration(COMBATFEEDBACK_FADEINTIME) -- fade in to 100% alpha
+			fadeIn:SetChange(1)
+			fadeIn:SetEndDelay(COMBATFEEDBACK_HOLDTIME) -- hold at 100% alpha
+		end
+		do
+			local fadeOut = group:CreateAnimation("Alpha")
+			fadeOut:SetOrder(2)
+			fadeOut:SetDuration(COMBATFEEDBACK_FADEOUTTIME) -- fade out to 0% alpha
+			fadeOut:SetChange(-1)
+		end
+		group:SetScript("OnFinished", hideMyParent) -- hide
+
+		pool[scf] = group
+		return group
+	end,
+})
 
 local Update = function(self, event, unit, ...)
 	if self.unit ~= unit then return end
@@ -26,23 +51,9 @@ local Update = function(self, event, unit, ...)
 		-- oUF "events" like ForceUpdate aren't meaningful for us; UNIT_COMBAT is the only event we know.
 		local scf = self.SimpleCombatFeedback
 		CombatFeedback_OnCombatEvent(scf, ...)
-		displayedFeedback[scf] = true
-		updateFrame:Show()
-	end
-end
-
-local function updateFrame_OnUpdate(self, elapsed)
-	local doneUpdating = true
-	for scf,_ in next, displayedFeedback do
-		CombatFeedback_OnUpdate(scf, elapsed)
-		if scf:IsShown() then
-			doneUpdating = false
-		else
-			displayedFeedback[scf] = nil
-		end
-	end
-	if doneUpdating then
-		self:Hide()
+		local fader = animationPool[scf]
+		fader:Stop()
+		fader:Play()
 	end
 end
 
@@ -60,11 +71,6 @@ local Enable = function(self)
 		scf.__owner = self
 		scf.ForceUpdate = ForceUpdate
 
-		if not updateFrame then
-			updateFrame = CreateFrame("Frame")
-			updateFrame:Hide()
-			updateFrame:SetScript("OnUpdate", updateFrame_OnUpdate)
-		end
 		scf:Hide()
 		scf.feedbackText = scf
 		scf.feedbackFontHeight = scf.feedbackFontHeight or 30
@@ -76,7 +82,8 @@ end
 local Disable = function(self)
 	local scf = self.SimpleCombatFeedback
 	if scf then
-		displayedFeedback[scf] = nil
+		local anim = rawget(animationPool, scf)
+		if anim then anim:Stop() end
 		self:UnregisterEvent("UNIT_COMBAT", Path)
 	end
 end
