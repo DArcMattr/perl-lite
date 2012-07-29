@@ -2,6 +2,10 @@
 	"PerlLite" - a Perl layout for oUF
 	Copyright (C) 2012  Morsk
 	All Rights Reserved.
+
+	Attaches the default UI's "resources" like Soul Shards, DK Runes, etc.,
+	to the Player frame. Can also restore their original positions, used when
+	the option for a resource is toggled off.
 ---------------------------------------------------------------------------]]
 --{{{ top
 local _addonName = ...
@@ -16,16 +20,16 @@ local profile
 local undo = {}
 --}}}
 --{{{ upvalues
--- GLOBALS: EclipseBarFrame
--- GLOBALS: PaladinPowerBar
--- GLOBALS: RuneFrame
--- GLOBALS: ShardBarFrame
--- GLOBALS: TotemFrame
 local BEAR_FORM = BEAR_FORM
 local CAT_FORM = CAT_FORM
+local EclipseBarFrame = EclipseBarFrame
 local GetPrimaryTalentTree = GetPrimaryTalentTree -- FIXME: broken in MoP
 local GetShapeshiftFormID = GetShapeshiftFormID
 local MOONKIN_FORM = MOONKIN_FORM
+local PaladinPowerBar = PaladinPowerBar
+local RuneFrame = RuneFrame
+local ShardBarFrame = ShardBarFrame
+local TotemFrame = TotemFrame
 local UnitClass = UnitClass
 local hooksecurefunc = hooksecurefunc
 local unpack = unpack
@@ -84,7 +88,7 @@ local function _locked_SetPoint(frame, p1, p2, p3, p4, p5)
 end
 
 local function takeoverFrame(self, child, layerDiff, p1, p2, p3, p4, p5)
-	-- Take control of the frame, and block any attempts to move it with SetPoint.
+	-- Take control of the frame, and undo any attempts to move it with SetPoint.
 	-- But remember its original settings, so we can restore it if we want.
 	local u = undo[child]
 	if not u then
@@ -150,8 +154,6 @@ function Module:UnfixSoulShards()
 end
 
 function Module:FixRunes()
-	-- UnitFrame_SetUnit in Blizzard's UnitFrame.lua can move the RuneFrame.
-	-- Test if this works correctly for vehicle frames.
 	local runes = RuneFrame
 	local player = oUF.units.player
 	takeoverFrame(player, runes, 0, "TOPRIGHT", player.StatsFrame, "BOTTOMRIGHT", 4, 0)
@@ -215,12 +217,9 @@ function Module:OnEnable()
 end
 
 function Module:OnDisable()
-	self:UnfixSoulShards()
-	self:UnfixEclipse()
-	self:UnfixRunes()
 	self:UnfixHolyPower()
+	self:UnfixSoulShards()
+	self:UnfixRunes()
+	self:UnfixEclipse()
 	self:UnfixTotems()
 end
---@do-not-package@ --{{{
-
---}}} --@end-do-not-package@
