@@ -43,6 +43,13 @@ Addon.defaults = {
 			gradientStart = { 26, 26, 26, 0 },
 			gradientEnd = { 64, 64, 64, 255},
 		},
+		resource = {
+			eclipse = true,
+			soulshards = true,
+			holypower = true,
+			runes = true,
+			totems = true,
+		},
 		player = {
 			scale = 0.9,
 			attachPoint = "TOPLEFT",

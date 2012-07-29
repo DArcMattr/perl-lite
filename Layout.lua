@@ -1200,6 +1200,8 @@ function Module:OnInitialize()
 
 	oUF:Factory(function(self)
 		spawnHelper(self, "player")
+		Core.LayoutResource:LoadSettings()
+
 		spawnHelper(self, "pet")
 		spawnHelper(self, "target")
 		spawnHelper(self, "targettarget")

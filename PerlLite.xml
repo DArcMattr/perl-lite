@@ -4,6 +4,7 @@
 	<Script file="Core.lua" />
 	<Script file="Movable.lua" />
 	<Script file="Layout.lua" />
+	<Script file="LayoutResource.lua" />
 
 	<Script file="elements\classicon.lua" />
 	<Script file="elements\level.lua" />

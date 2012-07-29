@@ -21,7 +21,9 @@ local profile
 -- GLOBALS: InterfaceAddOnsList_Update
 -- GLOBALS: LibStub
 -- GLOBALS: tremove
+local UnitClass = UnitClass
 local math_round = math.round
+local select = select
 --}}}
 
 function Module:ProfileChanged()
@@ -97,6 +99,17 @@ end
 local function generic_set_style_or_false(info, val)
 	if val == falseStr then val = false end
 	return generic_set_style(info, val)
+end
+
+local function generic_get_resource(info)
+	local setting = info[#info]
+	return profile.resource[setting]
+end
+
+local function generic_set_resource(info, val)
+	local setting = info[#info]
+	profile.resource[setting] = val
+	Core.LayoutResource:LoadSettings()
 end
 --}}}
 
@@ -517,6 +530,56 @@ function Module:OnInitialize()
 				disabled = function(info)
 					return not profile.color.gradient
 				end,
+			},
+			_resource_header = {
+				order = 10,
+				type = "header",
+				name = "Resources",
+			},
+			_resource_description = {
+				order = 11,
+				type = "description",
+				name = "Checking a box will make ".._coreAddonTitle.." attach that resource to the player frame. This isn't guaranteed to work; other addons might be hiding the resource. Unchecking means ".._coreAddonTitle.." will not touch or interfere with the resource. An unchecked resource might or might not hide; that's up to your other mods and the default UI. Unchecking means ".._coreAddonTitle.." will do NOTHING, insuring there are no conflicts with other addons.",
+			},
+			eclipse = {
+				order = 12,
+				type = "toggle",
+				name = "Eclipse",
+				desc = "For Balance Druids",
+				get = generic_get_resource,
+				set = generic_set_resource,
+			},
+			soulshards = {
+				order = 13,
+				type = "toggle",
+				name = "Soul Shards",
+				desc = "For Warlocks",
+				get = generic_get_resource,
+				set = generic_set_resource,
+			},
+			holypower = {
+				order = 14,
+				type = "toggle",
+				name = "Holy Power",
+				desc = "For Paladins",
+				get = generic_get_resource,
+				set = generic_set_resource,
+			},
+			runes = {
+				order = 15,
+				type = "toggle",
+				name = "Runes",
+				desc = "For Death Knights",
+				get = generic_get_resource,
+				set = generic_set_resource,
+			},
+			totems = {
+				order = 16,
+				type = "toggle",
+				name = "Totems",
+				desc = "For Shamans. Paladins and Druids also use the Totem display for some spells.",
+				get = generic_get_resource,
+				set = generic_set_resource,
 			},
 		}
 	}
