@@ -122,6 +122,7 @@ local function releaseFrame(child)
 		child:SetFrameLevel(u.originalFrameLevel)
 		child:SetScale(u.originalScale)
 		child.SetPoint = nil
+		child:ClearAllPoints()
 		child:SetPoint(unpack(u.originalPoint))
 	end
 end
