@@ -57,12 +57,8 @@ local Update = function(self, event, unit, ...)
 	end
 end
 
-local Path = function(self, ...)
-	return (self.SimpleCombatFeedback.Override or Update) (self, ...)
-end
-
 local ForceUpdate = function(element)
-	return Path(element.__owner, 'ForceUpdate', element.__owner.unit)
+	return Update(element.__owner, 'ForceUpdate', element.__owner.unit)
 end
 
 local Enable = function(self)
@@ -74,7 +70,7 @@ local Enable = function(self)
 		scf:Hide()
 		scf.feedbackText = scf
 		scf.feedbackFontHeight = scf.feedbackFontHeight or 30
-		self:RegisterEvent("UNIT_COMBAT", Path)
+		self:RegisterEvent("UNIT_COMBAT", Update)
 		return true
 	end
 end
@@ -84,8 +80,8 @@ local Disable = function(self)
 	if scf then
 		local anim = rawget(animationPool, scf)
 		if anim then anim:Stop() end
-		self:UnregisterEvent("UNIT_COMBAT", Path)
+		self:UnregisterEvent("UNIT_COMBAT", Update)
 	end
 end
 
-oUF:AddElement("SimpleCombatFeedback", Path, Enable, Disable)
+oUF:AddElement("SimpleCombatFeedback", Update, Enable, Disable)
