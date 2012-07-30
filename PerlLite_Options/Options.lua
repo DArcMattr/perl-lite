@@ -122,6 +122,16 @@ do --{{{ Module:MakeSectionArgs()
 	end
 
 	-- scale = 1,
+	local scale = { order = nextOrder(),
+		type = "range",
+		name = "Scale",
+		min = .6, max = 1, step = .01,
+	}
+  -- enableFrame = 1
+	local enableFrame = { order = nextOrder(),
+		type = "toggle",
+		name = "Enable Frame",
+	}
 	-- alpha = 216,
 	local alpha = { order = nextOrder(),
 		type = "range",
@@ -361,7 +371,8 @@ do --{{{ Module:MakeSectionArgs()
 	end
 
 	local section = {}
-	-- section.scale = scale
+	section.scale = scale
+	section.enableFrame = enableFrame
 	section.alpha = alpha
 	section.nestedAlpha = nestedAlpha
 	-- section.rangeAlphaCoef = rangeAlphaCoef

@@ -70,6 +70,7 @@ Addon.defaults = {
 		},
 		targettarget = {
 			scale = 0.7,
+			enableFrame = false,
 			attachPoint = "TOP",
 			attachX = -15,
 			attachY = -22,
@@ -82,6 +83,7 @@ Addon.defaults = {
 		},
 		focustarget = {
 			scale = 0.7,
+			enableFrame = false,
 			attachPoint = "LEFT",
 			attachX = 450,
 			attachY = 151,

@@ -69,6 +69,7 @@ local wipe = wipe
 --]]
 local basicStyle = {
 	scale = 1,
+	enableFrame = true,
 	alpha = 216,
 	nestedAlpha = true,
 	rangeAlphaCoef = false,
@@ -166,6 +167,7 @@ local stylePrototype = {
 	},
 	targettarget = {
 		level = false,
+    enableFrame = false,
 		classIcon = false,
 		raidIcon = "RIGHT",
 	},
@@ -354,7 +356,7 @@ local HealthOverride = function(self, event, unit, powerType)
 	health.disconnected = disconnected
 
 	-- health text
-	health.text:formatValMax(val, maxVal)
+  health.text:formatValMax(val, maxVal)
 
 	-- health tag
 	local tag
@@ -986,80 +988,81 @@ local Layout = function(self, initial)
 	local c = self.styleConf
 
 	-- Alphas. XPerl is weird about this. Nested frames get an alpha that combines with the main one, with some exceptions.
-	local alpha = c.alpha
-	self:SetAlpha(alpha / 255)
-	if c.nestedAlpha then
-		self.NameFrame:SetAlpha(alpha / 255)
-		self.StatsFrame:SetAlpha(alpha / 255)
-	else
-		self.NameFrame:SetAlpha(1)
-		self.StatsFrame:SetAlpha(1)
-	end
+  if ( not c.enableFrame ) then return end
+  local alpha = c.alpha
+  self:SetAlpha(alpha / 255)
+  if c.nestedAlpha then
+    self.NameFrame:SetAlpha(alpha / 255)
+    self.StatsFrame:SetAlpha(alpha / 255)
+  else
+    self.NameFrame:SetAlpha(1)
+    self.StatsFrame:SetAlpha(1)
+  end
 
-	self.corner = false -- to make sure nothing tries to use until it's set
-	LayoutNameAndStats(self, c, initial)
-	LayoutPortrait(self, c, initial)
-	LayoutLevel(self, c, initial)
+  self.corner = false -- to make sure nothing tries to use until it's set
+  LayoutNameAndStats(self, c, initial)
+  LayoutPortrait(self, c, initial)
+  LayoutLevel(self, c, initial)
 
-	-- 4 basic layouts.
-	local width
-	local height = max(c.portrait and c.portraitH or 0, c.nameH + (c.healthH + c.powerH + 10) + c.statsTopPadding)
-	if c.embedLevelAndClassIcon and (c.level or c.classIcon) then
-		if c.portrait then
-			-- "group" frame w/ portrait
-			if c.level then
-				attach(self, "LevelFrame", "TOPLEFT", nil, "TOPLEFT", 0, 0)
-				attach(self, "PortraitFrame", "TOPLEFT", "LevelFrame", "TOPRIGHT", -2, 0)
-			else
-				attach(self, "PortraitFrame", "TOPLEFT", nil, "TOPLEFT", 27 - 2, 0)
-			end
-			attach(self, "NameFrame", "TOPLEFT", "PortraitFrame", "TOPRIGHT", c.portraitPadding, 0)
-			attach(self, "StatsFrame", "TOPLEFT", "NameFrame", "BOTTOMLEFT", 0, -c.statsTopPadding)
-			width = 27 + c.portraitW - 2 + max(c.nameW, c.statsW) + c.portraitPadding
-			self.corner = self.PortraitFrame
-		else
-			-- "group" frame w/o portrait. This has the distinctive embedded level frame.
-			attach(self, "NameFrame", "TOPLEFT", nil, "TOPLEFT", 0, 0)
-			attach(self, "LevelFrame", "TOPLEFT", "NameFrame", "BOTTOMLEFT", 0, -c.statsTopPadding)
-			attach(self, "StatsFrame", "TOPLEFT", "LevelFrame", "TOPRIGHT", -2, 0)
-			width = max(c.nameW, 30 + c.statsW - 2)
-			self.corner = self.LevelFrame
-		end
-	else
-		width = max(c.nameW, c.statsW)
-		if c.portrait then
-			-- "standard" frame w/ portrait, like player & target.
-			attach(self, "PortraitFrame", "TOPLEFT", nil, "TOPLEFT", 0, 0)
-			attach(self, "NameFrame", "TOPLEFT", "PortraitFrame", "TOPRIGHT", c.portraitPadding, 0)
-			if c.level then
-				attach(self, "LevelFrame", "TOPRIGHT", "PortraitFrame", "TOPLEFT", 2, 0)
-			end
-			width = width + c.portraitW + c.portraitPadding
-			self.corner = self.PortraitFrame
-		else
-			-- "standard" frame w/o portrait, like the default targettarget
-			attach(self, "NameFrame", "TOPLEFT", nil, "TOPLEFT", 0, 0)
-			if c.level then
-				attach(self, "LevelFrame", "TOPRIGHT", "NameFrame", "TOPLEFT", 2, 0)
-			end
-			self.corner = self.StatsFrame
-		end
-		attach(self, "StatsFrame", "TOPLEFT", "NameFrame", "BOTTOMLEFT", 0, -c.statsTopPadding)
-	end
-	self:SetSize(width, height)
+  -- 4 basic layouts.
+  local width
+  local height = max(c.portrait and c.portraitH or 0, c.nameH + (c.healthH + c.powerH + 10) + c.statsTopPadding)
+  if c.embedLevelAndClassIcon and (c.level or c.classIcon) then
+    if c.portrait then
+      -- "group" frame w/ portrait
+      if c.level then
+        attach(self, "LevelFrame", "TOPLEFT", nil, "TOPLEFT", 0, 0)
+        attach(self, "PortraitFrame", "TOPLEFT", "LevelFrame", "TOPRIGHT", -2, 0)
+      else
+        attach(self, "PortraitFrame", "TOPLEFT", nil, "TOPLEFT", 27 - 2, 0)
+      end
+      attach(self, "NameFrame", "TOPLEFT", "PortraitFrame", "TOPRIGHT", c.portraitPadding, 0)
+      attach(self, "StatsFrame", "TOPLEFT", "NameFrame", "BOTTOMLEFT", 0, -c.statsTopPadding)
+      width = 27 + c.portraitW - 2 + max(c.nameW, c.statsW) + c.portraitPadding
+      self.corner = self.PortraitFrame
+    else
+      -- "group" frame w/o portrait. This has the distinctive embedded level frame.
+      attach(self, "NameFrame", "TOPLEFT", nil, "TOPLEFT", 0, 0)
+      attach(self, "LevelFrame", "TOPLEFT", "NameFrame", "BOTTOMLEFT", 0, -c.statsTopPadding)
+      attach(self, "StatsFrame", "TOPLEFT", "LevelFrame", "TOPRIGHT", -2, 0)
+      width = max(c.nameW, 30 + c.statsW - 2)
+      self.corner = self.LevelFrame
+    end
+  else
+    width = max(c.nameW, c.statsW)
+    if c.portrait then
+      -- "standard" frame w/ portrait, like player & target.
+      attach(self, "PortraitFrame", "TOPLEFT", nil, "TOPLEFT", 0, 0)
+      attach(self, "NameFrame", "TOPLEFT", "PortraitFrame", "TOPRIGHT", c.portraitPadding, 0)
+      if c.level then
+        attach(self, "LevelFrame", "TOPRIGHT", "PortraitFrame", "TOPLEFT", 2, 0)
+      end
+      width = width + c.portraitW + c.portraitPadding
+      self.corner = self.PortraitFrame
+    else
+      -- "standard" frame w/o portrait, like the default targettarget
+      attach(self, "NameFrame", "TOPLEFT", nil, "TOPLEFT", 0, 0)
+      if c.level then
+        attach(self, "LevelFrame", "TOPRIGHT", "NameFrame", "TOPLEFT", 2, 0)
+      end
+      self.corner = self.StatsFrame
+    end
+    attach(self, "StatsFrame", "TOPLEFT", "NameFrame", "BOTTOMLEFT", 0, -c.statsTopPadding)
+  end
+  self:SetSize(width, height)
 
-	LayoutHealPrediction(self, c, initial)
-	LayoutCombatFeedback(self, c, initial)
-	LayoutRange(self, c, initial)
-	LayoutPvPIcon(self, c, initial)
-	LayoutRaidIcon(self, c, initial)
-	LayoutLeaderIcon(self, c, initial)
-	LayoutMasterLooterIcon(self, c, initial)
-	LayoutCombatIcon(self, c, initial)
-	LayoutClassIcon(self, c, initial)
-	LayoutEliteFrame(self, c, initial)
-	LayoutRaceFrame(self, c, initial)
-	LayoutSounds(self, c, initial)
+  LayoutHealPrediction(self, c, initial)
+  LayoutCombatFeedback(self, c, initial)
+  LayoutRange(self, c, initial)
+  LayoutPvPIcon(self, c, initial)
+  LayoutRaidIcon(self, c, initial)
+  LayoutLeaderIcon(self, c, initial)
+  LayoutMasterLooterIcon(self, c, initial)
+  LayoutCombatIcon(self, c, initial)
+  LayoutClassIcon(self, c, initial)
+  LayoutEliteFrame(self, c, initial)
+  LayoutRaceFrame(self, c, initial)
+  LayoutSounds(self, c, initial)
 end
 
 local eliteTypeDisplay = {
@@ -1072,62 +1075,68 @@ local eliteTypeDisplay = {
 local PostUpdate = function(self, event)
 	local c = self.styleConf
 	local unit = self.unit
-	if c.eliteType then
-		local eliteType = UnitClassification(unit)
-		if eliteType == "normal" and UnitPlayerControlled(unit) and not UnitIsPlayer(unit) then
-			eliteType = "pet"
-		end
-		if eliteType == "normal" then
-			if c.classIcon then self.ClassIcon:Show() end
-			self.EliteFrame:Hide()
-		else
-			if c.classIcon then self.ClassIcon:Hide() end
-			local text = self.EliteFrame.text
-			local color = self.colors.elite[eliteType]
-			text:SetText(eliteTypeDisplay[eliteType])
-			text:SetTextColor(color[1], color[2], color[3])
-			self.EliteFrame:SetWidth(text:GetStringWidth() + 10)
-			self.EliteFrame:Show()
-		end
-	end
-	if c.npcRace then
-		if UnitIsPlayer(unit) then
-			self.RaceFrame:Hide()
-		else
-			local race = UnitCreatureFamily(unit) or UnitCreatureType(unit)
-			self.RaceFrame.text:SetText(race)
-			self.RaceFrame:SetWidth(self.RaceFrame.text:GetStringWidth() + 10)
-			self.RaceFrame:ClearAllPoints()
-			attach(self, "RaceFrame", "TOPLEFT", "corner", "BOTTOMLEFT", 0, 2)
-			-- FIXME: special logic for too-long races
-			-- if self.RaceFrame:GetWidth() > self.PortraitFrame:GetWidth() then
-				-- attachLeft = not attachLeft
-			-- end
-			-- if attachLeft then
-				-- self.RaceFrame:SetPoint("TOPLEFT", self.PortraitFrame, "BOTTOMLEFT", 0, 2)
-			-- else
-				-- self.RaceFrame:SetPoint("TOPRIGHT", self.PortraitFrame, "BOTTOMRIGHT", 0, 2)
-			-- end
-			self.RaceFrame:Show()
-		end
-	end
+
+  if ( not c.enableFrame ) then return end
+
+  if c.eliteType then
+    local eliteType = UnitClassification(unit)
+    if eliteType == "normal" and UnitPlayerControlled(unit) and not UnitIsPlayer(unit) then
+      eliteType = "pet"
+    end
+    if eliteType == "normal" then
+      if c.classIcon then self.ClassIcon:Show() end
+      self.EliteFrame:Hide()
+    else
+      if c.classIcon then self.ClassIcon:Hide() end
+      local text = self.EliteFrame.text
+      local color = self.colors.elite[eliteType]
+      text:SetText(eliteTypeDisplay[eliteType])
+      text:SetTextColor(color[1], color[2], color[3])
+      self.EliteFrame:SetWidth(text:GetStringWidth() + 10)
+      self.EliteFrame:Show()
+    end
+  end
+  if c.npcRace then
+    if UnitIsPlayer(unit) then
+      self.RaceFrame:Hide()
+    else
+      local race = UnitCreatureFamily(unit) or UnitCreatureType(unit)
+      self.RaceFrame.text:SetText(race)
+      self.RaceFrame:SetWidth(self.RaceFrame.text:GetStringWidth() + 10)
+      self.RaceFrame:ClearAllPoints()
+      attach(self, "RaceFrame", "TOPLEFT", "corner", "BOTTOMLEFT", 0, 2)
+      -- FIXME: special logic for too-long races
+      -- if self.RaceFrame:GetWidth() > self.PortraitFrame:GetWidth() then
+        -- attachLeft = not attachLeft
+      -- end
+      -- if attachLeft then
+        -- self.RaceFrame:SetPoint("TOPLEFT", self.PortraitFrame, "BOTTOMLEFT", 0, 2)
+      -- else
+        -- self.RaceFrame:SetPoint("TOPRIGHT", self.PortraitFrame, "BOTTOMRIGHT", 0, 2)
+      -- end
+      self.RaceFrame:Show()
+    end
+  end
 end
 
 local Shared = function(self, unit, isSingle)
 	self.menu = menu
-	self:SetScript("OnEnter", UnitFrame_OnEnter)
-	self:SetScript("OnLeave", UnitFrame_OnLeave)
-	self:RegisterForClicks("AnyUp")
-
-	DoNameFrame(self, unit, isSingle)
-	DoStatsFrame(self, unit, isSingle)
-
-	self.colors = Module.colors
-	self.PostUpdate = PostUpdate
-
 	self.styleConf = style[unit] or style.party
-	self.Layout = Layout
-	self:Layout(true)
+
+  if self.styleConf.enableFrame then
+    self:SetScript("OnEnter", UnitFrame_OnEnter)
+    self:SetScript("OnLeave", UnitFrame_OnLeave)
+    self:RegisterForClicks("AnyUp")
+
+    DoNameFrame(self, unit, isSingle)
+    DoStatsFrame(self, unit, isSingle)
+
+    self.colors = Module.colors
+    self.PostUpdate = PostUpdate
+
+    self.Layout = Layout
+    self:Layout(true)
+  end
 end
 
 function Module:LayoutAll()
