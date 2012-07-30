@@ -77,6 +77,7 @@ local basicStyle = {
 	nestedAlpha = true,
 	rangeAlphaCoef = false,
 	sounds = false,
+	enableCastbar = true,
 	pvpSound = false,
 	portrait = false,
 	portraitW = 60,
@@ -143,6 +144,7 @@ local stylePrototypes = {
 	},
 	pet = {
 		nestedAlpha = false,
+		enableCastbar = false,
 		portrait = "3d",
 		portraitW = 50,
 		portraitH = 56,
@@ -170,11 +172,13 @@ local stylePrototypes = {
 	},
 	targettarget = {
 		level = false,
+		enableCastbar = false,
 		classIcon = false,
 		raidIcon = "RIGHT",
 	},
 	focus = {
 		_inherits = "target",
+		enableCastbar = false,
 	},
 	focustarget = {
 		_inherits = "targettarget",
@@ -994,6 +998,9 @@ local function LayoutSounds(self, c, initial)
 	elseif self.PvPSound then
 		self:DisableElement("PvPSound")
 	end
+end
+
+local function LayoutCastbar(self, c, initial)
 end
 
 local Layout = function(self, initial)
