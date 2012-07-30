@@ -127,7 +127,7 @@ do --{{{ Module:MakeSectionArgs()
 		name = "Scale",
 		min = .6, max = 1, step = .01,
 	}
-	-- enableFrame = 1
+	-- enableFrame = true
 	local enableFrame = { order = nextOrder(),
 		type = "toggle",
 		name = "Enable Frame",
@@ -195,6 +195,11 @@ do --{{{ Module:MakeSectionArgs()
 		type = "range",
 		name = "Portrait Height",
 		min = 40, max = 80, step = 1,
+	}
+	-- enableCastbar = true
+	local enableCastbar = { order = nextOrder(),
+		type = "toggle",
+		name = "Enable Castbar",
 	}
 	-- leftToRight = true,
 	local leftToRight = { order = nextOrder(),
@@ -381,6 +386,7 @@ do --{{{ Module:MakeSectionArgs()
 	section.portrait = portrait
 	section.portraitW = portraitW
 	section.portraitH = portraitH
+	section.enableCastbar = enableCastbar
 	section.leftToRight = leftToRight
 	section.healPrediction = healPrediction
 	section.combatFeedback = combatFeedback
