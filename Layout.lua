@@ -564,7 +564,7 @@ end
 
 local function CreateBorderedChildFrame(parent, backdrop)
 	local newf = CreateFrameSameLevel("Frame", nil, parent)
-	newf:SetBackdrop(backdrop or backdrop_gray125)
+	newf:SetBackdrop( backdrop or backdrop_black255 )
 	newf:SetBackdropColor(0, 0, 0, 1)
 	newf:SetBackdropBorderColor(.5, .5, .5, 1)
 	return newf
@@ -990,37 +990,43 @@ end
 
 local function LayoutCastbar(self, c, initial)
 	if c.enableCastbar then
-		self.Castbar = CreateFrame('StatusBar', nil, self)
-		self.Castbar:SetBackdrop(backdrop or backdrop_gray125)
-		self.Castbar:SetBackdropColor( 0, 0, 0 )
-		self.Castbar:SetHeight( c.nameH )
-		self.Castbar:SetStatusBarTexture( profile.barTexture )
-		self.Castbar:SetStatusBarColor( 1, 1, .5 )
+		local Castbar = CreateFrame( "StatusBar", nil, self )
+		Castbar:SetParent(self.NameFrame)
+		Castbar:SetPoint( "TOPLEFT", 4, -4 )
+		Castbar:SetPoint( "BOTTOMRIGHT", -4, 4 )
+		Castbar:SetFrameLevel(6)
 
-		self.Castbar:SetParent(self.NameFrame)
-		self.Castbar:SetAllPoints()
-		self.Castbar:SetFrameLevel(6)
+		Castbar:SetBackdrop( {
+			bgFile = Core.texturePath..[[black255_32px]], tile = true, tileSize = 32,
+			insets = {left = 0, right = 0, top = 0, bottom = 0},
+		})
+		Castbar:SetBackdropBorderColor(.5, .5, .5, 1)
+		Castbar:SetBackdropColor( 0, 0, 0, 1 )
+		Castbar:SetStatusBarTexture( profile.barTexture )
+		Castbar:SetStatusBarColor( 1, 1, 0 )
 
-		self.Castbar.Text = self.Castbar:CreateFontString(nil, 'OVERLAY', "GameFontNormalSmall")
-		self.Castbar.Text:SetPoint('LEFT', self.Castbar, c.nameH + 2, 0)
-		self.Castbar.Text:SetTextColor(1, 1, 1)
+		Castbar.Text = Castbar:CreateFontString(nil, 'OVERLAY', "GameFontNormalSmall")
+		Castbar.Text:SetPoint('LEFT', Castbar, c.nameH, 0)
+		Castbar.Text:SetTextColor(1, 1, 1)
 
-		self.Castbar.Time = self.Castbar:CreateFontString(nil, 'OVERLAY', "GameFontNormalSmall")
-		self.Castbar.Time:SetPoint('RIGHT', self.Castbar, -3, 0)
-		self.Castbar.Time:SetTextColor(1, 1, 1)
+		Castbar.Time = Castbar:CreateFontString(nil, 'OVERLAY', "GameFontNormalSmall")
+		Castbar.Time:SetPoint('RIGHT', Castbar, -3, 0)
+		Castbar.Time:SetTextColor(1, 1, 1)
 
-		self.Castbar.Icon = self.Castbar:CreateTexture(nil, 'OVERLAY')
-		self.Castbar.Icon:SetSize( c.nameH, c.nameH )
-		self.Castbar.Icon:SetTexCoord(0, 1, 0, 1)
-		self.Castbar.Icon:SetPoint('LEFT')
+		Castbar.Icon = Castbar:CreateTexture(nil, 'OVERLAY')
+		Castbar.Icon:SetSize( c.nameH - 6, c.nameH - 6 )
+		Castbar.Icon:SetTexCoord(0, 1, 0, 1)
+		Castbar.Icon:SetPoint( "TOPLEFT", 0, 0 )
 
-		self.Castbar.Icon.bg = self.Castbar:CreateTexture(nil, 'OVERLAY')
-		self.Castbar.Icon.bg:SetPoint("TOPLEFT", self.Castbar.Icon, "TOPLEFT")
-		self.Castbar.Icon.bg:SetPoint("BOTTOMRIGHT", self.Castbar.Icon, "BOTTOMRIGHT")
-		self.Castbar.Icon.bg:SetVertexColor(0.25, 0.25, 0.25)
+		Castbar.Icon.bg = Castbar:CreateTexture(nil, 'OVERLAY')
+		Castbar.Icon.bg:SetPoint("TOPLEFT", Castbar.Icon, "TOPLEFT")
+		Castbar.Icon.bg:SetPoint("BOTTOMRIGHT", Castbar.Icon, "BOTTOMRIGHT")
+		Castbar.Icon.bg:SetVertexColor(0.25, 0.25, 0.25)
 
-		self.Castbar.SafeZone = self.Castbar:CreateTexture(nil, "OVERLAY")
-		self.Castbar.SafeZone:SetTexture(1,0,0,.5)
+		Castbar.SafeZone = Castbar:CreateTexture(nil, "OVERLAY")
+		Castbar.SafeZone:SetTexture(1,0,0,.5)
+
+    self.Castbar = Castbar
 	end
 end
 
