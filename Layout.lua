@@ -68,6 +68,7 @@ local wipe = wipe
 		party
 --]]
 local basicStyle = {
+	enabled = true,
 	scale = 1,
 	alpha = 216,
 	nestedAlpha = true,
@@ -1181,6 +1182,54 @@ function Module:InitOUFSettings()
 	oUF.TagEvents['perllite:Foo'] = oUF.TagEvents.missinghp
 end
 
+function Module:EnableOrDisableFrame(unit)
+	local frame = (unit == "party") and self.partyHeader or oUF.units[unit]
+	local c = style[unit]
+	if c.enabled then
+		if frame then
+			frame:Enable()
+			frame:Layout()
+		else
+			oUF:SetActiveStyle(_addonName)
+			if unit == "party" then
+				frame = oUF:SpawnHeader(_addonName.."_Party", nil, "raid,party",
+					"showParty", true,
+					"yOffset", -23
+					--[=[
+					"oUF-initialConfigFunction", [[
+						self:SetWidth(225)
+						self:SetHeight(60)
+					]]
+					--]=]
+				)
+				self.partyHeader = frame
+				frame.Layout = function(self)
+					for i = 1,#self do
+						self[i]:Layout()
+					end
+				end
+				frame.UpdateAllElements = function(self, ...)
+					for i = 1,#self do
+						self[i]:UpdateAllElements(...)
+					end
+				end
+			else
+				local cunit = unit:gsub("target","Target"):gsub("^%l", strupper)
+				frame = oUF:Spawn(unit, _addonName.."_"..cunit)
+			end
+			Core.Movable:RegisterMovable(frame, unit)
+		end
+		if unit == "player" then
+			Core.LayoutResource:Enable()
+		end
+	elseif frame then
+		if unit == "player" then
+			Core.LayoutResource:Disable()
+		end
+		frame:Disable()
+	end
+end
+
 function Module:OnInitialize()
 	self.OnInitialize = nil
 	self:ProfileChanged()
@@ -1188,43 +1237,17 @@ function Module:OnInitialize()
 
 	self:InitOUFSettings()
 	oUF:RegisterStyle(_addonName, Shared)
-
-	-- A small helper to change the style into a unit specific, if it exists.
-	local spawnHelper = function(self, unit)
-		self:SetActiveStyle(_addonName)
-		local cunit = unit:gsub("target","Target"):gsub("^%l", strupper)
-		local object = self:Spawn(unit, _addonName.."_"..cunit)
-		Core.Movable:RegisterMovable(object, unit)
-		return object
-	end
-
-	oUF:Factory(function(self)
-		spawnHelper(self, "player")
-		Core.LayoutResource:LoadSettings()
-
-		spawnHelper(self, "pet")
-		spawnHelper(self, "target")
-		spawnHelper(self, "targettarget")
-		spawnHelper(self, "focus")
-		spawnHelper(self, "focustarget")
-
-		self:SetActiveStyle(_addonName)
-		local party = self:SpawnHeader(_addonName.."_Party", nil, "raid,party",
-			"showParty", true,
-			"yOffset", -23
-			--[=[
-			"oUF-initialConfigFunction", [[
-				self:SetWidth(225)
-				self:SetHeight(60)
-			]]
-			--]=]
-		)
-		Core.Movable:RegisterMovable(party, "party") -- TODO: needs an anchor frame
-	end)
 end
 
 function Module:OnEnable()
 	self:RegisterEvent("PLAYER_FLAGS_CHANGED")
+	self:EnableOrDisableFrame("player")
+	self:EnableOrDisableFrame("pet")
+	self:EnableOrDisableFrame("target")
+	self:EnableOrDisableFrame("targettarget")
+	self:EnableOrDisableFrame("focus")
+	self:EnableOrDisableFrame("focustarget")
+	self:EnableOrDisableFrame("party")
 end
 
 function Module:OnDisable()

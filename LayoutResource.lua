@@ -12,6 +12,7 @@ local _addonName = ...
 
 local Core = LibStub("AceAddon-3.0"):GetAddon(_addonName)
 local Module = Core:NewModule("LayoutResource", "AceEvent-3.0")
+Module:SetEnabledState(false)
 Core.LayoutResource = Module
 local L = Core.L
 local oUF
@@ -31,6 +32,7 @@ local RuneFrame = RuneFrame
 local ShardBarFrame = ShardBarFrame
 local TotemFrame = TotemFrame
 local UnitClass = UnitClass
+local assert = assert
 local hooksecurefunc = hooksecurefunc
 local unpack = unpack
 local wipe = wipe
@@ -211,9 +213,8 @@ function Module:OnInitialize()
 end
 
 function Module:OnEnable()
-	if oUF.units.player then
-		self:LoadSettings()
-	end
+	assert(oUF.units.player)
+	self:LoadSettings()
 end
 
 function Module:OnDisable()
