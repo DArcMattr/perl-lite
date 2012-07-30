@@ -229,8 +229,8 @@ local backdrop_gray125 = {
 	insets = {left = 4, right = 4, top = 4, bottom = 4},
 }
 
-local backdrop_black255 = {
-	bgFile = Core.texturePath..[[black255_32px]], tile = true, tileSize = 32,
+local backdrop_black0 = {
+	bgFile = Core.texturePath..[[black0_32px]], tile = true, tileSize = 32,
 	edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", edgeSize = 16,
 	insets = {left = 4, right = 4, top = 4, bottom = 4},
 }
@@ -754,7 +754,7 @@ end
 
 local function LayoutPortrait(self, c, initial)
 	if c.portrait and not self.PortraitFrame then
-		self.PortraitFrame = CreateBorderedChildFrame(self, backdrop_black255)
+		self.PortraitFrame = CreateBorderedChildFrame(self, backdrop_black0)
 	end
 	if self.PortraitFrame then
 		UpdateFrameGradient(self.PortraitFrame)
