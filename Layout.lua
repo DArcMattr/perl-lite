@@ -988,7 +988,11 @@ local Layout = function(self, initial)
 	local c = self.styleConf
 
 	-- Alphas. XPerl is weird about this. Nested frames get an alpha that combines with the main one, with some exceptions.
-	if ( not c.enableFrame ) then return end
+	if c.enableFrame then
+		self:Enable()
+	else
+		self:Disable()
+	end
 	local alpha = c.alpha
 	self:SetAlpha(alpha / 255)
 	if c.nestedAlpha then
@@ -1076,7 +1080,11 @@ local PostUpdate = function(self, event)
 	local c = self.styleConf
 	local unit = self.unit
 
-	if ( not c.enableFrame ) then return end
+	if c.enableFrame then
+		self:Enable()
+	else
+		self:Disable()
+	end
 
 	if c.eliteType then
 		local eliteType = UnitClassification(unit)
@@ -1123,20 +1131,18 @@ local Shared = function(self, unit, isSingle)
 	self.menu = menu
 	self.styleConf = style[unit] or style.party
 
-	if self.styleConf.enableFrame then
-		self:SetScript("OnEnter", UnitFrame_OnEnter)
-		self:SetScript("OnLeave", UnitFrame_OnLeave)
-		self:RegisterForClicks("AnyUp")
+	self:SetScript("OnEnter", UnitFrame_OnEnter)
+	self:SetScript("OnLeave", UnitFrame_OnLeave)
+	self:RegisterForClicks("AnyUp")
 
-		DoNameFrame(self, unit, isSingle)
-		DoStatsFrame(self, unit, isSingle)
+	DoNameFrame(self, unit, isSingle)
+	DoStatsFrame(self, unit, isSingle)
 
-		self.colors = Module.colors
-		self.PostUpdate = PostUpdate
+	self.colors = Module.colors
+	self.PostUpdate = PostUpdate
 
-		self.Layout = Layout
-		self:Layout(true)
-	end
+	self.Layout = Layout
+	self:Layout(true)
 end
 
 function Module:LayoutAll()
