@@ -127,7 +127,7 @@ do --{{{ Module:MakeSectionArgs()
 		name = "Scale",
 		min = .6, max = 1, step = .01,
 	}
-  -- enableFrame = 1
+	-- enableFrame = 1
 	local enableFrame = { order = nextOrder(),
 		type = "toggle",
 		name = "Enable Frame",
