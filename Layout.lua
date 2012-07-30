@@ -1001,6 +1001,39 @@ local function LayoutSounds(self, c, initial)
 end
 
 local function LayoutCastbar(self, c, initial)
+	if c.enableCastbar then
+		self.Castbar = CreateFrame('StatusBar', nil, self)
+		self.Castbar:SetBackdrop(backdrop or backdrop_gray125)
+		self.Castbar:SetBackdropColor( 0, 0, 0 )
+		self.Castbar:SetHeight( c.nameH )
+		self.Castbar:SetStatusBarTexture( profile.barTexture )
+		self.Castbar:SetStatusBarColor( 1, 1, .5 )
+
+		self.Castbar:SetParent(self.NameFrame)
+		self.Castbar:SetAllPoints()
+		self.Castbar:SetFrameLevel(6)
+
+		self.Castbar.Text = self.Castbar:CreateFontString(nil, 'OVERLAY', "GameFontNormalSmall")
+		self.Castbar.Text:SetPoint('LEFT', self.Castbar, c.nameH + 2, 0)
+		self.Castbar.Text:SetTextColor(1, 1, 1)
+
+		self.Castbar.Time = self.Castbar:CreateFontString(nil, 'OVERLAY', "GameFontNormalSmall")
+		self.Castbar.Time:SetPoint('RIGHT', self.Castbar, -3, 0)
+		self.Castbar.Time:SetTextColor(1, 1, 1)
+
+		self.Castbar.Icon = self.Castbar:CreateTexture(nil, 'OVERLAY')
+		self.Castbar.Icon:SetSize( c.nameH, c.nameH )
+		self.Castbar.Icon:SetTexCoord(0, 1, 0, 1)
+		self.Castbar.Icon:SetPoint('LEFT')
+
+		self.Castbar.Icon.bg = self.Castbar:CreateTexture(nil, 'OVERLAY')
+		self.Castbar.Icon.bg:SetPoint("TOPLEFT", self.Castbar.Icon, "TOPLEFT")
+		self.Castbar.Icon.bg:SetPoint("BOTTOMRIGHT", self.Castbar.Icon, "BOTTOMRIGHT")
+		self.Castbar.Icon.bg:SetVertexColor(0.25, 0.25, 0.25)
+
+		self.Castbar.SafeZone = self.Castbar:CreateTexture(nil, "OVERLAY")
+		self.Castbar.SafeZone:SetTexture(1,0,0,.5)
+	end
 end
 
 local Layout = function(self, initial)
@@ -1081,6 +1114,7 @@ local Layout = function(self, initial)
 	LayoutEliteFrame(self, c, initial)
 	LayoutRaceFrame(self, c, initial)
 	LayoutSounds(self, c, initial)
+	LayoutCastbar(self, c, initial)
 end
 
 local eliteTypeDisplay = {
