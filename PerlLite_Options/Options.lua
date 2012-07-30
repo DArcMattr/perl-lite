@@ -122,6 +122,17 @@ do --{{{ Module:MakeSectionArgs()
 	end
 
 	-- scale = 1,
+	local scale = { order = nextOrder(),
+		type = "range",
+		name = "Scale",
+		isPercent = true,
+		min = 0.5, max = 1.5, bigStep = 0.01,
+		set = function(info, val)
+			local style = info[#info-1]
+			generic_set_style(info, val)
+			Core.Movable:RestorePosition(style)
+		end,
+	}
 	-- alpha = 216,
 	local alpha = { order = nextOrder(),
 		type = "range",
@@ -361,7 +372,7 @@ do --{{{ Module:MakeSectionArgs()
 	end
 
 	local section = {}
-	-- section.scale = scale
+	section.scale = scale
 	section.alpha = alpha
 	section.nestedAlpha = nestedAlpha
 	-- section.rangeAlphaCoef = rangeAlphaCoef
