@@ -23,6 +23,7 @@ local profile
 -- GLOBALS: UnitClassification
 -- GLOBALS: UnitCreatureFamily
 -- GLOBALS: UnitCreatureType
+-- GLOBALS: UnitFactionGroup
 -- GLOBALS: UnitFrame_OnEnter
 -- GLOBALS: UnitFrame_OnLeave
 -- GLOBALS: UnitGetIncomingHeals
@@ -32,6 +33,7 @@ local profile
 -- GLOBALS: UnitIsAFK
 -- GLOBALS: UnitIsConnected
 -- GLOBALS: UnitIsDead
+-- GLOBALS: UnitIsEnemy
 -- GLOBALS: UnitIsGhost
 -- GLOBALS: UnitIsPlayer
 -- GLOBALS: UnitIsTapped
@@ -338,13 +340,20 @@ local HealthOverride = function(self, event, unit, powerType)
 	elseif UnitIsPlayer(unit) then
 		-- class color
 		local _, class = UnitClass(unit)
-		nameColor = self.colors.class[class]
-		if not nameColor then error("invalid UnitClass '"..(class or "nil").."' for unit '"..unit.."'") end
+		nameColor = self.colors.class[class] or self.colors.nameDefault
 	else
 		local react = UnitReaction(unit, "player")
 		-- note: UnitSelectionColor is a possible alternative to UnitReaction
+		if not react then
+			if UnitFactionGroup(unit) == UnitFactionGroup("player") then
+				react = 5 -- friend
+			elseif UnitIsEnemy("player", unit) then
+				react = 1 -- enemy
+			else
+				react = 4 -- neutral
+			end
+		end
 		nameColor = self.colors.reaction[react]
-		if not nameColor then error("invalid UnitReaction '"..(react or "nil").."' for unit '"..unit.."'") end
 	end
 	name:SetTextColor(nameColor[1], nameColor[2], nameColor[3])
 
@@ -1172,6 +1181,7 @@ function Module:InitOUFSettings()
 			{ 0, 1, 0 }, -- 7, friend
 			{ 0, 1, 0 }, -- 8, friend
 		},
+		nameDefault = { 0.5, 0.5, 1 },
 	}, {__index = oUF.colors})
 
 	-- Tags. FIXME: this is just an example
