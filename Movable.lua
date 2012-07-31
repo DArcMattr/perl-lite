@@ -17,7 +17,8 @@ local FIXME_OPTIONS_CATEGORY = select(2, GetAddOnInfo(_addonName)).." - Position
 local profile
 local _MOVING
 local backdropPool = {}
-local configNames = {}
+local configNames = {} -- object --> name
+local configObjects = {} -- name --> object
 
 local LibWin_names = {
 	x = "attachX",
@@ -98,8 +99,13 @@ function Module:ProfileChanged()
 	-- TODO: LibWin is supposed to need help here.
 end
 
+function Module:RestorePosition(configName)
+	LibWin.RestorePosition(configObjects[configName])
+end
+
 function Module:RegisterMovable(object, configName)
 	configNames[object] = configName
+	configObjects[configName] = object
 	LibWin.RegisterConfig(object, profile[configName], LibWin_names)
 	LibWin.RestorePosition(object)
 end

@@ -62,6 +62,16 @@ do
 	end
 end
 
+local function generic_disabled_style(info)
+	if #info == 2 then
+		local setting, style = info[#info], info[#info-1]
+		if setting ~= "enabled" and not Core.Layout.style[style].enabled then
+			return true
+		end
+	end
+	return false
+end
+
 local function generic_get_style(info)
 	local setting, style = info[#info], info[#info-1]
 	return Core.Layout.style[style][setting]
@@ -82,23 +92,26 @@ local function generic_set_style(info, val)
 		profile[style][setting] = nil
 	end
 	Core.Layout.style[style][setting] = val
-	if style == "party" then
-		for i = 1,4 do
-			local frame = Core.oUF.units[style..i]
-			if frame then
-				frame:Layout()
-				frame:UpdateAllElements()
-			end
+	if setting == "enabled" then
+		Core.Layout:EnableOrDisableFrame(style)
+		if val == false then
+			return
 		end
-	else
-		Core.oUF.units[style]:Layout()
-		Core.oUF.units[style]:UpdateAllElements()
+	end
+	local frame = (style == "party") and Core.Layout.partyHeader or Core.oUF.units[style]
+	if frame then
+		frame:Layout()
+		frame:UpdateAllElements()
 	end
 end
 
 local function generic_set_style_or_false(info, val)
 	if val == falseStr then val = false end
 	return generic_set_style(info, val)
+end
+
+local function generic_disabled_resource(info)
+	return not Core.Layout.style.player.enabled
 end
 
 local function generic_get_resource(info)
@@ -121,16 +134,22 @@ do --{{{ Module:MakeSectionArgs()
 		return val
 	end
 
+	-- enabled = true,
+	local enabled = { order = nextOrder(),
+		type = "toggle",
+		name = "Enabled",
+	}
 	-- scale = 1,
 	local scale = { order = nextOrder(),
 		type = "range",
 		name = "Scale",
-		min = .6, max = 1, step = .01,
-	}
-	-- enableFrame = true
-	local enableFrame = { order = nextOrder(),
-		type = "toggle",
-		name = "Enable Frame",
+		isPercent = true,
+		min = 0.5, max = 1.5, bigStep = 0.01,
+		set = function(info, val)
+			local style = info[#info-1]
+			generic_set_style(info, val)
+			Core.Movable:RestorePosition(style)
+		end,
 	}
 	-- alpha = 216,
 	local alpha = { order = nextOrder(),
@@ -152,6 +171,7 @@ do --{{{ Module:MakeSectionArgs()
 		get = generic_get_style_or_false,
 		set = generic_set_style_or_false,
 		disabled = function(info)
+			if generic_disabled_style(info) then return true end
 			local style = info[#info-1]
 			return (style ~= "target" and style ~= "focus")
 		end,
@@ -168,6 +188,7 @@ do --{{{ Module:MakeSectionArgs()
 		get = generic_get_style_or_false,
 		set = generic_set_style_or_false,
 		disabled = function(info)
+			if generic_disabled_style(info) then return true end
 			local style = info[#info-1]
 			return (style ~= "player")
 		end,
@@ -376,8 +397,8 @@ do --{{{ Module:MakeSectionArgs()
 	end
 
 	local section = {}
+	section.enabled = enabled
 	section.scale = scale
-	section.enableFrame = enableFrame
 	section.alpha = alpha
 	section.nestedAlpha = nestedAlpha
 	-- section.rangeAlphaCoef = rangeAlphaCoef
@@ -430,6 +451,7 @@ do --{{{ Module:MakeSectionArgs()
 			order = order,
 			get = generic_get_style,
 			set = generic_set_style,
+			disabled = generic_disabled_style,
 			args = self:MakeSectionArgs()
 		}
 		return t
@@ -556,7 +578,13 @@ function Module:OnInitialize()
 			_resource_description = {
 				order = 11,
 				type = "description",
-				name = "Checking a box will make ".._coreAddonTitle.." attach that resource to the player frame. This isn't guaranteed to work; other addons might be hiding the resource. Unchecking means ".._coreAddonTitle.." will not touch or interfere with the resource. An unchecked resource might or might not hide; that's up to your other mods and the default UI. Unchecking means ".._coreAddonTitle.." will do NOTHING, insuring there are no conflicts with other addons.",
+				name = function(info)
+					if generic_disabled_resource(info) then
+						return "All resources are disabled, since the Player frame is disabled. Their default behavior might or might not work, depending on your other mods and the default UI."
+					else
+						return "Checking a box will make ".._coreAddonTitle.." attach that resource to the player frame. This isn't guaranteed to work; other addons might be hiding the resource. Unchecking means ".._coreAddonTitle.." will not touch or interfere with the resource. An unchecked resource might or might not hide; that's up to your other mods and the default UI. Unchecking means ".._coreAddonTitle.." will do NOTHING, insuring there are no conflicts with other addons."
+					end
+				end,
 			},
 			eclipse = {
 				order = 12,
@@ -565,6 +593,7 @@ function Module:OnInitialize()
 				desc = "For Balance Druids",
 				get = generic_get_resource,
 				set = generic_set_resource,
+				disabled = generic_disabled_resource,
 			},
 			soulshards = {
 				order = 13,
@@ -573,6 +602,7 @@ function Module:OnInitialize()
 				desc = "For Warlocks",
 				get = generic_get_resource,
 				set = generic_set_resource,
+				disabled = generic_disabled_resource,
 			},
 			holypower = {
 				order = 14,
@@ -581,6 +611,7 @@ function Module:OnInitialize()
 				desc = "For Paladins",
 				get = generic_get_resource,
 				set = generic_set_resource,
+				disabled = generic_disabled_resource,
 			},
 			runes = {
 				order = 15,
@@ -589,6 +620,7 @@ function Module:OnInitialize()
 				desc = "For Death Knights",
 				get = generic_get_resource,
 				set = generic_set_resource,
+				disabled = generic_disabled_resource,
 			},
 			totems = {
 				order = 16,
@@ -597,6 +629,7 @@ function Module:OnInitialize()
 				desc = "For Shamans. Paladins and Druids also use the Totem display for some spells.",
 				get = generic_get_resource,
 				set = generic_set_resource,
+				disabled = generic_disabled_resource,
 			},
 		}
 	}

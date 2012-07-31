@@ -23,6 +23,7 @@ local profile
 -- GLOBALS: UnitClassification
 -- GLOBALS: UnitCreatureFamily
 -- GLOBALS: UnitCreatureType
+-- GLOBALS: UnitFactionGroup
 -- GLOBALS: UnitFrame_OnEnter
 -- GLOBALS: UnitFrame_OnLeave
 -- GLOBALS: UnitGetIncomingHeals
@@ -32,6 +33,7 @@ local profile
 -- GLOBALS: UnitIsAFK
 -- GLOBALS: UnitIsConnected
 -- GLOBALS: UnitIsDead
+-- GLOBALS: UnitIsEnemy
 -- GLOBALS: UnitIsGhost
 -- GLOBALS: UnitIsPlayer
 -- GLOBALS: UnitIsTapped
@@ -68,6 +70,7 @@ local wipe = wipe
 		party
 --]]
 local basicStyle = {
+	enabled = true,
 	scale = 1,
 	enableFrame = true,
 	alpha = 216,
@@ -235,8 +238,8 @@ local backdrop_gray125 = {
 	insets = {left = 4, right = 4, top = 4, bottom = 4},
 }
 
-local backdrop_black255 = {
-	bgFile = Core.texturePath..[[black255_32px]], tile = true, tileSize = 32,
+local backdrop_black0 = {
+	bgFile = Core.texturePath..[[black0_32px]], tile = true, tileSize = 32,
 	edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", edgeSize = 16,
 	insets = {left = 4, right = 4, top = 4, bottom = 4},
 }
@@ -343,13 +346,20 @@ local HealthOverride = function(self, event, unit, powerType)
 	elseif UnitIsPlayer(unit) then
 		-- class color
 		local _, class = UnitClass(unit)
-		nameColor = self.colors.class[class]
-		if not nameColor then error("invalid UnitClass '"..(class or "nil").."' for unit '"..unit.."'") end
+		nameColor = self.colors.class[class] or self.colors.nameDefault
 	else
 		local react = UnitReaction(unit, "player")
 		-- note: UnitSelectionColor is a possible alternative to UnitReaction
+		if not react then
+			if UnitFactionGroup(unit) == UnitFactionGroup("player") then
+				react = 5 -- friend
+			elseif UnitIsEnemy("player", unit) then
+				react = 1 -- enemy
+			else
+				react = 4 -- neutral
+			end
+		end
 		nameColor = self.colors.reaction[react]
-		if not nameColor then error("invalid UnitReaction '"..(react or "nil").."' for unit '"..unit.."'") end
 	end
 	name:SetTextColor(nameColor[1], nameColor[2], nameColor[3])
 
@@ -760,7 +770,7 @@ end
 
 local function LayoutPortrait(self, c, initial)
 	if c.portrait and not self.PortraitFrame then
-		self.PortraitFrame = CreateBorderedChildFrame(self, backdrop_black255)
+		self.PortraitFrame = CreateBorderedChildFrame(self, backdrop_black0)
 	end
 	if self.PortraitFrame then
 		UpdateFrameGradient(self.PortraitFrame)
@@ -1233,6 +1243,7 @@ function Module:InitOUFSettings()
 			{ 0, 1, 0 }, -- 7, friend
 			{ 0, 1, 0 }, -- 8, friend
 		},
+		nameDefault = { 0.5, 0.5, 1 },
 	}, {__index = oUF.colors})
 
 	-- Tags. FIXME: this is just an example
@@ -1243,6 +1254,54 @@ function Module:InitOUFSettings()
 	oUF.TagEvents['perllite:Foo'] = oUF.TagEvents.missinghp
 end
 
+function Module:EnableOrDisableFrame(unit)
+	local frame = (unit == "party") and self.partyHeader or oUF.units[unit]
+	local c = style[unit]
+	if c.enabled then
+		if frame then
+			frame:Enable()
+			frame:Layout()
+		else
+			oUF:SetActiveStyle(_addonName)
+			if unit == "party" then
+				frame = oUF:SpawnHeader(_addonName.."_Party", nil, "raid,party",
+					"showParty", true,
+					"yOffset", -23
+					--[=[
+					"oUF-initialConfigFunction", [[
+						self:SetWidth(225)
+						self:SetHeight(60)
+					]]
+					--]=]
+				)
+				self.partyHeader = frame
+				frame.Layout = function(self)
+					for i = 1,#self do
+						self[i]:Layout()
+					end
+				end
+				frame.UpdateAllElements = function(self, ...)
+					for i = 1,#self do
+						self[i]:UpdateAllElements(...)
+					end
+				end
+			else
+				local cunit = unit:gsub("target","Target"):gsub("^%l", strupper)
+				frame = oUF:Spawn(unit, _addonName.."_"..cunit)
+			end
+			Core.Movable:RegisterMovable(frame, unit)
+		end
+		if unit == "player" then
+			Core.LayoutResource:Enable()
+		end
+	elseif frame then
+		if unit == "player" then
+			Core.LayoutResource:Disable()
+		end
+		frame:Disable()
+	end
+end
+
 function Module:OnInitialize()
 	self.OnInitialize = nil
 	self:ProfileChanged()
@@ -1250,43 +1309,17 @@ function Module:OnInitialize()
 
 	self:InitOUFSettings()
 	oUF:RegisterStyle(_addonName, Shared)
-
-	-- A small helper to change the style into a unit specific, if it exists.
-	local spawnHelper = function(self, unit)
-		self:SetActiveStyle(_addonName)
-		local cunit = unit:gsub("target","Target"):gsub("^%l", strupper)
-		local object = self:Spawn(unit, _addonName.."_"..cunit)
-		Core.Movable:RegisterMovable(object, unit)
-		return object
-	end
-
-	oUF:Factory(function(self)
-		spawnHelper(self, "player")
-		Core.LayoutResource:LoadSettings()
-
-		spawnHelper(self, "pet")
-		spawnHelper(self, "target")
-		spawnHelper(self, "targettarget")
-		spawnHelper(self, "focus")
-		spawnHelper(self, "focustarget")
-
-		self:SetActiveStyle(_addonName)
-		local party = self:SpawnHeader(_addonName.."_Party", nil, "raid,party",
-			"showParty", true,
-			"yOffset", -23
-			--[=[
-			"oUF-initialConfigFunction", [[
-				self:SetWidth(225)
-				self:SetHeight(60)
-			]]
-			--]=]
-		)
-		Core.Movable:RegisterMovable(party, "party") -- TODO: needs an anchor frame
-	end)
 end
 
 function Module:OnEnable()
 	self:RegisterEvent("PLAYER_FLAGS_CHANGED")
+	self:EnableOrDisableFrame("player")
+	self:EnableOrDisableFrame("pet")
+	self:EnableOrDisableFrame("target")
+	self:EnableOrDisableFrame("targettarget")
+	self:EnableOrDisableFrame("focus")
+	self:EnableOrDisableFrame("focustarget")
+	self:EnableOrDisableFrame("party")
 end
 
 function Module:OnDisable()
