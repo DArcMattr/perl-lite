@@ -48,17 +48,18 @@ local _G = _G
 local assert = assert
 local floor = floor
 local format = format
-local getmetatable = getmetatable
 local max = max
 local next = next
 local setmetatable = setmetatable
 local strmatch = strmatch
 local strupper = strupper
+local tostring = tostring
 local unpack = unpack
 local wipe = wipe
 --}}}
 
---{{{ styles
+do -- styles
+--{{{ style data
 --[[
 	basicStyle
 		player
@@ -127,7 +128,7 @@ local basicStyle = {
 	powerFormat = "val/max",
 	portraitPadding = -3,
 }
-local stylePrototype = {
+local stylePrototypes = {
 	player = {
 		nestedAlpha = false,
 		pvpSound = "Master",
@@ -172,9 +173,11 @@ local stylePrototype = {
 		classIcon = false,
 		raidIcon = "RIGHT",
 	},
-	focus = { -- inheriets target
+	focus = {
+		_inherits = "target"
 	},
-	focustarget = { -- inheriets targettarget
+	focustarget = {
+		_inherits = "targettarget"
 	},
 	party = {
 		rangeAlphaCoef = 0.5,
@@ -194,33 +197,33 @@ local stylePrototype = {
 		portraitPadding = -2,
 	},
 }
---}}}
+--}}} style data
 --{{{ style init
-local style = {}
 do
-	local inheritsBasicStyle = { __index = function(self, key)
-		local val = basicStyle[key]
-		if val == nil then error("invalid style property: '"..key.."'") end
-		return val
-	end }
-	local function cachingIndexFunction(self, key)
-		local val = getmetatable(self).__prototype[key] -- '__prototype' isn't some big Lua convention; it's just our little design for these settings tables
-		self[key] = val
-		return val
-	end
-	setmetatable(stylePrototype.focus, { __index=stylePrototype.target })
-	setmetatable(stylePrototype.focustarget, { __index=stylePrototype.targettarget })
-	for s,_ in next, stylePrototype do
-		if not getmetatable(stylePrototype[s]) then
-			setmetatable(stylePrototype[s], inheritsBasicStyle) -- All prototypes index basic style, directly or indirectly.
+	local function shallowCopy(to, from)
+		for k,v in next, from do
+			to[k] = v
 		end
-		style[s] = setmetatable({}, { __prototype = stylePrototype[s], __index = cachingIndexFunction }) -- New table, indexing prototype.
 	end
+	-- Copy style properties into the "defaults" tables.
+	for k,proto in next, stylePrototypes do
+		local settings = Core.defaults.profile[k]
+		settings._style = k -- so a style knows its own name
+		shallowCopy(settings, basicStyle)
+		if proto._inherits then
+			shallowCopy(settings, stylePrototypes[proto._inherits])
+			settings._inherits = nil
+		end
+		shallowCopy(settings, proto)
+	end
+	-- Drop the big style properites tables, but keep the names for code that wants to iterate on them.
+	for k,_ in next, stylePrototypes do
+		stylePrototypes[k] = k
+	end
+	Module.styleNames = stylePrototypes
+--}}} style init
 end
-Module.basicStyle = basicStyle
-Module.stylePrototype = stylePrototype
-Module.style = style
---}}}
+end
 
 --{{{ textures & backdrops
 local classIconsBg = [[Interface\Glues\CharacterCreate\UI-CharacterCreate-Classes]] -- has black and some border around the image
@@ -241,15 +244,16 @@ local backdrop_black0 = {
 local grad1r, grad1g, grad1b, grad1a, grad2r, grad2g, grad2b, grad2a
 --}}} textures & backdrops
 
+
+local complainsInvalidStyleProperty = {
+	__index = function(self, key)
+		error("invalid style property: "..(self._style or "???").."."..tostring(key))
+	end
+}
 function Module:ProfileChanged()
 	profile = Core.db.profile
-	for styleName, settings in next, style do
-		wipe(settings) -- 1. wipe old settings for this style
-		if profile[styleName] then -- 2. copy in settings from profile
-			for i,j in next, profile[styleName] do
-				settings[i] = j
-			end
-		end
+	for styleName,_ in next, self.styleNames do
+		setmetatable(profile[styleName], complainsInvalidStyleProperty)
 	end
 	do -- color upvalues
 		local color = profile.color
@@ -425,7 +429,7 @@ local PowerOverride = function(self, event, unit)
 	if unit == "target" or unit == "focus" then
 		-- Show Power iff unit has a real power bar. Units with 0 maxPower don't have a real bar.
 		if not not (maxVal > 0) ~= not not power:IsShown() then
-			local c = self.styleConf
+			local c = self.settings
 			if maxVal > 0 then
 				self.StatsFrame:SetHeight(c.healthH + c.powerH + 10)
 				power:Show()
@@ -609,7 +613,7 @@ local pointFlipH = {
 	["BOTTOM"] = "BOTTOM",
 }
 local function attach(self, frame1name, point1, frame2name, point2, xOff, yOff, specialNegativeXOff)
-	if not self.styleConf.leftToRight then
+	if not self.settings.leftToRight then
 		point1 = pointFlipH[point1]
 		point2 = pointFlipH[point2]
 		xOff = specialNegativeXOff or -xOff
@@ -993,7 +997,7 @@ local function LayoutSounds(self, c, initial)
 end
 
 local Layout = function(self, initial)
-	local c = self.styleConf
+	local c = self.settings
 
 	-- Alphas. XPerl is weird about this. Nested frames get an alpha that combines with the main one, with some exceptions.
 	local alpha = c.alpha
@@ -1080,7 +1084,7 @@ local eliteTypeDisplay = {
 	pet = "Pet",
 }
 local PostUpdate = function(self, event)
-	local c = self.styleConf
+	local c = self.settings
 	local unit = self.unit
 	if c.eliteType then
 		local eliteType = UnitClassification(unit)
@@ -1135,7 +1139,7 @@ local Shared = function(self, unit, isSingle)
 	self.colors = Module.colors
 	self.PostUpdate = PostUpdate
 
-	self.styleConf = style[unit] or style.party
+	self.settings = profile[unit] or profile.party
 	self.Layout = Layout
 	self:Layout(true)
 end
@@ -1194,8 +1198,7 @@ end
 
 function Module:EnableOrDisableFrame(unit)
 	local frame = (unit == "party") and self.partyHeader or oUF.units[unit]
-	local c = style[unit]
-	if c.enabled then
+	if profile[unit].enabled then
 		if frame then
 			frame:Enable()
 			frame:Layout()
