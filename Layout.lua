@@ -72,7 +72,6 @@ local wipe = wipe
 local basicStyle = {
 	enabled = true,
 	scale = 1,
-	enableFrame = true,
 	alpha = 216,
 	nestedAlpha = true,
 	rangeAlphaCoef = false,
@@ -172,7 +171,6 @@ local stylePrototype = {
 	},
 	targettarget = {
 		level = false,
-		enableFrame = false,
 		enableCastbar = false,
 		classIcon = false,
 		raidIcon = "RIGHT",
@@ -574,7 +572,7 @@ end
 
 local function CreateBorderedChildFrame(parent, backdrop)
 	local newf = CreateFrameSameLevel("Frame", nil, parent)
-	newf:SetBackdrop( backdrop or backdrop_black255 )
+	newf:SetBackdrop( backdrop or backdrop_black0 )
 	newf:SetBackdropColor(0, 0, 0, 1)
 	newf:SetBackdropBorderColor(.5, .5, .5, 1)
 	return newf
@@ -1007,7 +1005,7 @@ local function LayoutCastbar(self, c, initial)
 		Castbar:SetFrameLevel(6)
 
 		Castbar:SetBackdrop( {
-			bgFile = Core.texturePath..[[black255_32px]], tile = true, tileSize = 32,
+			bgFile = Core.texturePath..[[black0_32px]], tile = true, tileSize = 32,
 			insets = {left = 0, right = 0, top = 0, bottom = 0},
 		})
 		Castbar:SetBackdropBorderColor(.5, .5, .5, 1)
@@ -1044,7 +1042,7 @@ local Layout = function(self, initial)
 	local c = self.styleConf
 
 	-- Alphas. XPerl is weird about this. Nested frames get an alpha that combines with the main one, with some exceptions.
-	if c.enableFrame then
+	if c.enabled then
 		self:Enable()
 	else
 		self:Disable()
@@ -1137,7 +1135,7 @@ local PostUpdate = function(self, event)
 	local c = self.styleConf
 	local unit = self.unit
 
-	if c.enableFrame then
+	if c.enabled then
 		self:Enable()
 	else
 		self:Disable()
