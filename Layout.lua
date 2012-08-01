@@ -77,7 +77,7 @@ local basicStyle = {
 	nestedAlpha = true,
 	rangeAlphaCoef = false,
 	sounds = false,
-	enableCastbar = true,
+	castbar = true,
 	pvpSound = false,
 	portrait = false,
 	portraitW = 60,
@@ -144,7 +144,7 @@ local stylePrototypes = {
 	},
 	pet = {
 		nestedAlpha = false,
-		enableCastbar = false,
+		castbar = false,
 		portrait = "3d",
 		portraitW = 50,
 		portraitH = 56,
@@ -172,13 +172,13 @@ local stylePrototypes = {
 	},
 	targettarget = {
 		level = false,
-		enableCastbar = false,
+		castbar = false,
 		classIcon = false,
 		raidIcon = "RIGHT",
 	},
 	focus = {
 		_inherits = "target",
-		enableCastbar = false,
+		castbar = false,
 	},
 	focustarget = {
 		_inherits = "targettarget",
@@ -1001,7 +1001,7 @@ local function LayoutSounds(self, c, initial)
 end
 
 local function LayoutCastbar(self, c, initial)
-	if c.enableCastbar then
+	if c.castbar then
 		local Castbar = self.Castbar
 		if not Castbar then
 			self.Castbar = CreateFrame( "StatusBar", nil, self.NameFrame )

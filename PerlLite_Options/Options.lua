@@ -211,10 +211,10 @@ do --{{{ Module:MakeSectionArgs()
 		name = "Portrait Height",
 		min = 40, max = 80, step = 1,
 	}
-	-- enableCastbar = true
-	local enableCastbar = { order = nextOrder(),
+	-- castbar = true
+	local castbar = { order = nextOrder(),
 		type = "toggle",
-		name = "Enable Castbar",
+		name = "Cast Bar",
 	}
 	-- leftToRight = true,
 	local leftToRight = { order = nextOrder(),
@@ -401,7 +401,7 @@ do --{{{ Module:MakeSectionArgs()
 	section.portrait = portrait
 	section.portraitW = portraitW
 	section.portraitH = portraitH
-	section.enableCastbar = enableCastbar
+	section.castbar = castbar
 	section.leftToRight = leftToRight
 	section.healPrediction = healPrediction
 	section.combatFeedback = combatFeedback
