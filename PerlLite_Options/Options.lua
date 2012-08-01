@@ -65,7 +65,7 @@ end
 local function generic_disabled_style(info)
 	if #info == 2 then
 		local setting, style = info[#info], info[#info-1]
-		if setting ~= "enabled" and not Core.Layout.style[style].enabled then
+		if setting ~= "enabled" and not profile[style].enabled then
 			return true
 		end
 	end
@@ -74,7 +74,7 @@ end
 
 local function generic_get_style(info)
 	local setting, style = info[#info], info[#info-1]
-	return Core.Layout.style[style][setting]
+	return profile[style][setting]
 end
 
 local function generic_get_style_or_false(info)
@@ -85,13 +85,7 @@ end
 
 local function generic_set_style(info, val)
 	local setting, style = info[#info], info[#info-1]
-	local prototypeVal = Core.Layout.stylePrototype[style][setting]
-	if val ~= prototypeVal then
-		profile[style][setting] = val
-	else
-		profile[style][setting] = nil
-	end
-	Core.Layout.style[style][setting] = val
+	profile[style][setting] = val
 	if setting == "enabled" then
 		Core.Layout:EnableOrDisableFrame(style)
 		if val == false then
@@ -111,7 +105,7 @@ local function generic_set_style_or_false(info, val)
 end
 
 local function generic_disabled_resource(info)
-	return not Core.Layout.style.player.enabled
+	return not profile.player.enabled
 end
 
 local function generic_get_resource(info)
