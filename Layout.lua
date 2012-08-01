@@ -1,6 +1,6 @@
 --[[-------------------------------------------------------------------------
 	"PerlLite" - a Perl layout for oUF
-	Copyright (C) 2012	Morsk
+	Copyright (C) 2012  Morsk
 	All Rights Reserved.
 ---------------------------------------------------------------------------]]
 --{{{ top
@@ -77,7 +77,7 @@ local basicStyle = {
 	nestedAlpha = true,
 	rangeAlphaCoef = false,
 	sounds = false,
-	enableCastbar = true,
+	castbar = true,
 	pvpSound = false,
 	portrait = false,
 	portraitW = 60,
@@ -144,7 +144,7 @@ local stylePrototypes = {
 	},
 	pet = {
 		nestedAlpha = false,
-		enableCastbar = false,
+		castbar = false,
 		portrait = "3d",
 		portraitW = 50,
 		portraitH = 56,
@@ -172,12 +172,13 @@ local stylePrototypes = {
 	},
 	targettarget = {
 		level = false,
-		enableCastbar = false,
+		castbar = false,
 		classIcon = false,
 		raidIcon = "RIGHT",
 	},
 	focus = {
 		_inherits = "target",
+		castbar = false,
 	},
 	focustarget = {
 		_inherits = "targettarget",
@@ -575,7 +576,7 @@ end
 
 local function CreateBorderedChildFrame(parent, backdrop)
 	local newf = CreateFrameSameLevel("Frame", nil, parent)
-	newf:SetBackdrop( backdrop or backdrop_black0 )
+	newf:SetBackdrop(backdrop or backdrop_gray125)
 	newf:SetBackdropColor(0, 0, 0, 1)
 	newf:SetBackdropBorderColor(.5, .5, .5, 1)
 	return newf
@@ -1000,44 +1001,56 @@ local function LayoutSounds(self, c, initial)
 end
 
 local function LayoutCastbar(self, c, initial)
-	if c.enableCastbar then
-		local Castbar = CreateFrame( "StatusBar", nil, self )
-		Castbar:SetParent(self.NameFrame)
+	if c.castbar then
+		local Castbar = self.Castbar
+		if not Castbar then
+			self.Castbar = CreateFrame( "StatusBar", nil, self.NameFrame )
+			Castbar = self.Castbar
+			Castbar:SetBackdrop( {
+				bgFile = Core.texturePath..[[black0_32px]], tile = true, tileSize = 32,
+				insets = {left = 0, right = 0, top = 0, bottom = 0},
+			})
+			Castbar.Text = Castbar:CreateFontString(nil, 'OVERLAY', "GameFontNormalSmall")
+			Castbar.Time = Castbar:CreateFontString(nil, 'OVERLAY', "GameFontNormalSmall")
+			Castbar.Icon = Castbar:CreateTexture(nil, 'OVERLAY')
+			Castbar.Icon.bg = Castbar:CreateTexture(nil, 'OVERLAY')
+			Castbar.SafeZone = Castbar:CreateTexture(nil, "OVERLAY")
+			Castbar.Shield = Castbar:CreateTexture( [[Interface\CastingBar\UI-CastingBar-Arena-Shield]], "OVERLAY" )
+			-- this is allegedly a standalone shield, but WoW is giving me a whole casting
+			-- bar with the shield on the left, augh
+		end
+		if not initial then self:EnableElement("Castbar") end
 		Castbar:SetPoint( "TOPLEFT", 4, -4 )
 		Castbar:SetPoint( "BOTTOMRIGHT", -4, 4 )
 		Castbar:SetFrameLevel(6)
 
-		Castbar:SetBackdrop( {
-			bgFile = Core.texturePath..[[black0_32px]], tile = true, tileSize = 32,
-			insets = {left = 0, right = 0, top = 0, bottom = 0},
-		})
 		Castbar:SetBackdropBorderColor(.5, .5, .5, 1)
 		Castbar:SetBackdropColor( 0, 0, 0, 1 )
 		Castbar:SetStatusBarTexture( profile.barTexture )
 		Castbar:SetStatusBarColor( 1, 1, 0 )
 
-		Castbar.Text = Castbar:CreateFontString(nil, 'OVERLAY', "GameFontNormalSmall")
 		Castbar.Text:SetPoint('LEFT', Castbar, c.nameH, 0)
 		Castbar.Text:SetTextColor(1, 1, 1)
 
-		Castbar.Time = Castbar:CreateFontString(nil, 'OVERLAY', "GameFontNormalSmall")
 		Castbar.Time:SetPoint('RIGHT', Castbar, -3, 0)
 		Castbar.Time:SetTextColor(1, 1, 1)
 
-		Castbar.Icon = Castbar:CreateTexture(nil, 'OVERLAY')
 		Castbar.Icon:SetSize( c.nameH - 6, c.nameH - 6 )
 		Castbar.Icon:SetTexCoord(0, 1, 0, 1)
 		Castbar.Icon:SetPoint( "TOPLEFT", 0, 0 )
 
-		Castbar.Icon.bg = Castbar:CreateTexture(nil, 'OVERLAY')
 		Castbar.Icon.bg:SetPoint("TOPLEFT", Castbar.Icon, "TOPLEFT")
 		Castbar.Icon.bg:SetPoint("BOTTOMRIGHT", Castbar.Icon, "BOTTOMRIGHT")
 		Castbar.Icon.bg:SetVertexColor(0.25, 0.25, 0.25)
 
-		Castbar.SafeZone = Castbar:CreateTexture(nil, "OVERLAY")
 		Castbar.SafeZone:SetTexture(1,0,0,.5)
 
-    self.Castbar = Castbar
+		Castbar.Shield:SetSize( 36, 41 ) -- scaling off 41 x 47
+		Castbar.Shield:SetTexCoord( 0, .1485, .14, .89 ) -- eyeballing this
+		Castbar.Shield:SetPoint( "TOPLEFT", Castbar.Icon, -10, 10 )
+	elseif self.Castbar then
+		self:DisableElement("Castbar")
+		self.Castbar:Hide()
 	end
 end
 
@@ -1045,11 +1058,6 @@ local Layout = function(self, initial)
 	local c = self.settings
 
 	-- Alphas. XPerl is weird about this. Nested frames get an alpha that combines with the main one, with some exceptions.
-	if c.enabled then
-		self:Enable()
-	else
-		self:Disable()
-	end
 	local alpha = c.alpha
 	self:SetAlpha(alpha / 255)
 	if c.nestedAlpha then
@@ -1137,13 +1145,6 @@ local eliteTypeDisplay = {
 local PostUpdate = function(self, event)
 	local c = self.settings
 	local unit = self.unit
-
-	if c.enabled then
-		self:Enable()
-	else
-		self:Disable()
-	end
-
 	if c.eliteType then
 		local eliteType = UnitClassification(unit)
 		if eliteType == "normal" and UnitPlayerControlled(unit) and not UnitIsPlayer(unit) then
@@ -1187,8 +1188,6 @@ end
 
 local Shared = function(self, unit, isSingle)
 	self.menu = menu
-	self.styleConf = style[unit] or style.party
-
 	self:SetScript("OnEnter", UnitFrame_OnEnter)
 	self:SetScript("OnLeave", UnitFrame_OnLeave)
 	self:RegisterForClicks("AnyUp")
