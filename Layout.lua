@@ -174,10 +174,10 @@ local stylePrototypes = {
 		raidIcon = "RIGHT",
 	},
 	focus = {
-		_inherits = "target"
+		_inherits = "target",
 	},
 	focustarget = {
-		_inherits = "targettarget"
+		_inherits = "targettarget",
 	},
 	party = {
 		rangeAlphaCoef = 0.5,
