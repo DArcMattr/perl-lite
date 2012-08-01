@@ -1002,43 +1002,48 @@ end
 
 local function LayoutCastbar(self, c, initial)
 	if c.enableCastbar then
-		local Castbar = CreateFrame( "StatusBar", nil, self )
-		Castbar:SetParent(self.NameFrame)
+		local Castbar = self.Castbar
+		if not Castbar then
+			self.Castbar = CreateFrame( "StatusBar", nil, self.NameFrame )
+			Castbar = self.Castbar
+			Castbar:SetBackdrop( {
+				bgFile = Core.texturePath..[[black0_32px]], tile = true, tileSize = 32,
+				insets = {left = 0, right = 0, top = 0, bottom = 0},
+			})
+			Castbar.Text = Castbar:CreateFontString(nil, 'OVERLAY', "GameFontNormalSmall")
+			Castbar.Time = Castbar:CreateFontString(nil, 'OVERLAY', "GameFontNormalSmall")
+			Castbar.Icon = Castbar:CreateTexture(nil, 'OVERLAY')
+			Castbar.Icon.bg = Castbar:CreateTexture(nil, 'OVERLAY')
+			Castbar.SafeZone = Castbar:CreateTexture(nil, "OVERLAY")
+		end
+		if not initial then self:EnableElement("Castbar") end
 		Castbar:SetPoint( "TOPLEFT", 4, -4 )
 		Castbar:SetPoint( "BOTTOMRIGHT", -4, 4 )
 		Castbar:SetFrameLevel(6)
 
-		Castbar:SetBackdrop( {
-			bgFile = Core.texturePath..[[black255_32px]], tile = true, tileSize = 32,
-			insets = {left = 0, right = 0, top = 0, bottom = 0},
-		})
 		Castbar:SetBackdropBorderColor(.5, .5, .5, 1)
 		Castbar:SetBackdropColor( 0, 0, 0, 1 )
 		Castbar:SetStatusBarTexture( profile.barTexture )
 		Castbar:SetStatusBarColor( 1, 1, 0 )
 
-		Castbar.Text = Castbar:CreateFontString(nil, 'OVERLAY', "GameFontNormalSmall")
 		Castbar.Text:SetPoint('LEFT', Castbar, c.nameH, 0)
 		Castbar.Text:SetTextColor(1, 1, 1)
 
-		Castbar.Time = Castbar:CreateFontString(nil, 'OVERLAY', "GameFontNormalSmall")
 		Castbar.Time:SetPoint('RIGHT', Castbar, -3, 0)
 		Castbar.Time:SetTextColor(1, 1, 1)
 
-		Castbar.Icon = Castbar:CreateTexture(nil, 'OVERLAY')
 		Castbar.Icon:SetSize( c.nameH - 6, c.nameH - 6 )
 		Castbar.Icon:SetTexCoord(0, 1, 0, 1)
 		Castbar.Icon:SetPoint( "TOPLEFT", 0, 0 )
 
-		Castbar.Icon.bg = Castbar:CreateTexture(nil, 'OVERLAY')
 		Castbar.Icon.bg:SetPoint("TOPLEFT", Castbar.Icon, "TOPLEFT")
 		Castbar.Icon.bg:SetPoint("BOTTOMRIGHT", Castbar.Icon, "BOTTOMRIGHT")
 		Castbar.Icon.bg:SetVertexColor(0.25, 0.25, 0.25)
 
-		Castbar.SafeZone = Castbar:CreateTexture(nil, "OVERLAY")
 		Castbar.SafeZone:SetTexture(1,0,0,.5)
-
-    self.Castbar = Castbar
+	elseif self.Castbar then
+		self:DisableElement("Castbar")
+		self.Castbar:Hide()
 	end
 end
 
