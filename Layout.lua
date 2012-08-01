@@ -576,7 +576,7 @@ end
 
 local function CreateBorderedChildFrame(parent, backdrop)
 	local newf = CreateFrameSameLevel("Frame", nil, parent)
-	newf:SetBackdrop( backdrop or backdrop_black255 )
+	newf:SetBackdrop(backdrop or backdrop_gray125)
 	newf:SetBackdropColor(0, 0, 0, 1)
 	newf:SetBackdropBorderColor(.5, .5, .5, 1)
 	return newf
