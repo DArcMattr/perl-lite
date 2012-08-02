@@ -77,7 +77,7 @@ local basicStyle = {
 	nestedAlpha = true,
 	rangeAlphaCoef = false,
 	sounds = false,
-	castbar = true,
+	castbar = false,
 	pvpSound = false,
 	portrait = false,
 	portraitW = 60,
@@ -144,7 +144,6 @@ local stylePrototypes = {
 	},
 	pet = {
 		nestedAlpha = false,
-		castbar = false,
 		portrait = "3d",
 		portraitW = 50,
 		portraitH = 56,
@@ -172,13 +171,11 @@ local stylePrototypes = {
 	},
 	targettarget = {
 		level = false,
-		castbar = false,
 		classIcon = false,
 		raidIcon = "RIGHT",
 	},
 	focus = {
 		_inherits = "target",
-		castbar = false,
 	},
 	focustarget = {
 		_inherits = "targettarget",
