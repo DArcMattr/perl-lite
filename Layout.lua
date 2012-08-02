@@ -1015,10 +1015,10 @@ local function LayoutCastbar(self, c, initial)
 			Castbar.Icon = Castbar:CreateTexture(nil, 'OVERLAY')
 			Castbar.Icon.bg = Castbar:CreateTexture(nil, 'OVERLAY')
 			Castbar.SafeZone = Castbar:CreateTexture(nil, "OVERLAY")
-			Castbar.Shield = Castbar:CreateTexture( [[Interface\CastingBar\UI-CastingBar-Arena-Shield]], "OVERLAY" )
-			-- this is allegedly a standalone shield, but WoW is giving me a whole casting
-			-- bar with the shield on the left, augh
-			Castbar.Shield:SetTexCoord(3/256, 37/256, 6/64, 56/64)
+			Castbar.Shield = Castbar:CreateTexture(nil)
+			Castbar.Shield:SetDrawLayer("OVERLAY", 1)
+			Castbar.Shield:SetTexture([[Interface\CastingBar\UI-CastingBar-Arena-Shield]])
+			Castbar.Shield:SetTexCoord(0/64, 40/64, 6/64, 56/64)
 		end
 		if not initial then self:EnableElement("Castbar") end
 		Castbar:SetPoint( "TOPLEFT", 4, -4 )
@@ -1048,7 +1048,7 @@ local function LayoutCastbar(self, c, initial)
 
 		Castbar.Shield:SetPoint( "CENTER", Castbar.Icon  )
 		local shieldIconSpace = 22 -- size of icon that would fit properly in the center of the shield
-		Castbar.Shield:SetWidth(34 * Castbar.Icon:GetWidth() / shieldIconSpace)
+		Castbar.Shield:SetWidth(40 * Castbar.Icon:GetWidth() / shieldIconSpace)
 		Castbar.Shield:SetHeight(50 * Castbar.Icon:GetHeight() / shieldIconSpace)
 	elseif self.Castbar then
 		self:DisableElement("Castbar")
