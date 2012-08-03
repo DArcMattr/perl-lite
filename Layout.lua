@@ -996,56 +996,80 @@ local function LayoutSounds(self, c, initial)
 	end
 end
 
+local function Castbar_OnShow(self)
+	self.__owner.Name:Hide()
+end
+local function Castbar_OnHide(self)
+	self.__owner.Name:Show()
+end
+local function PostCastStart(self, unit, name, _, castid)
+	self:SetAlpha(0.8)
+	self:SetStatusBarColor(1, .7, 0, self.__owner.settings.alpha / 255)
+end
+local function PostChannelStart(self, unit, name)
+	self:SetAlpha(1)
+	self:SetStatusBarColor(0, 1, 0, self.__owner.settings.alpha / 255)
+end
 local function LayoutCastbar(self, c, initial)
 	if c.castbar then
 		local Castbar = self.Castbar
 		if not Castbar then
-			self.Castbar = CreateFrame( "StatusBar", nil, self.NameFrame )
+			self.Castbar = CreateFrame("StatusBar", nil, self.NameFrame)
 			Castbar = self.Castbar
-			Castbar:SetBackdrop( {
-				bgFile = Core.texturePath..[[black0_32px]], tile = true, tileSize = 32,
-				insets = {left = 0, right = 0, top = 0, bottom = 0},
-			})
-			Castbar.Text = Castbar:CreateFontString(nil, 'OVERLAY', "GameFontNormalSmall")
-			Castbar.Time = Castbar:CreateFontString(nil, 'OVERLAY', "GameFontNormalSmall")
-			Castbar.Icon = Castbar:CreateTexture(nil, 'OVERLAY')
-			Castbar.Icon.bg = Castbar:CreateTexture(nil, 'OVERLAY')
-			Castbar.SafeZone = Castbar:CreateTexture(nil, "OVERLAY")
-			Castbar.Shield = Castbar:CreateTexture(nil)
-			Castbar.Shield:SetDrawLayer("OVERLAY", 1)
-			Castbar.Shield:SetTexture([[Interface\CastingBar\UI-CastingBar-Arena-Shield]])
-			Castbar.Shield:SetTexCoord(0/64, 40/64, 6/64, 56/64)
+			Castbar:Hide()
+			Castbar:SetScript("OnShow", Castbar_OnShow)
+			Castbar:SetScript("OnHide", Castbar_OnHide)
+			Castbar.PostCastStart = PostCastStart
+			Castbar.PostChannelStart = PostChannelStart
+
+			Castbar.Text = Castbar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+			-- Castbar.Time = Castbar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+			-- Castbar.Icon = Castbar:CreateTexture(nil, "OVERLAY")
+			-- Castbar.Icon.bg = Castbar:CreateTexture(nil, "OVERLAY")
+			-- Castbar.SafeZone = Castbar:CreateTexture(nil, "OVERLAY")
+			-- Castbar.Shield = Castbar:CreateTexture(nil)
+			-- Castbar.Shield:SetDrawLayer("OVERLAY", 1)
+			-- Castbar.Shield:SetTexture([[Interface\CastingBar\UI-CastingBar-Arena-Shield]])
+			-- Castbar.Shield:SetTexCoord(0/64, 40/64, 6/64, 56/64)
+
+			Castbar.Spark = Castbar:CreateTexture(nil, "OVERLAY")
+			Castbar.Spark:SetTexture([[Interface\CastingBar\UI-CastingBar-Spark]])
+			Castbar.Spark:SetBlendMode("ADD")
 		end
 		if not initial then self:EnableElement("Castbar") end
-		Castbar:SetPoint( "TOPLEFT", 4, -4 )
-		Castbar:SetPoint( "BOTTOMRIGHT", -4, 4 )
+		local ins = self.NameFrame:GetBackdrop().insets
+		Castbar:SetPoint("TOPLEFT", ins.left, -ins.top)
+		Castbar:SetPoint("BOTTOMRIGHT", -ins.right, ins.bottom)
+		local cbarHeight = c.nameH - ins.top - ins.bottom
 		Castbar:SetFrameLevel(6)
 
-		Castbar:SetBackdropBorderColor(.5, .5, .5, 1)
-		Castbar:SetBackdropColor( 0, 0, 0, 1 )
-		Castbar:SetStatusBarTexture( profile.barTexture )
-		Castbar:SetStatusBarColor( 1, 1, 0 )
+		Castbar:SetStatusBarTexture(profile.barTexture)
+		Castbar:SetStatusBarColor(1, .7, 0, .8)
 
-		Castbar.Text:SetPoint('LEFT', Castbar, c.nameH, 0)
+		Castbar.Text:SetPoint("TOPLEFT")
+		Castbar.Text:SetPoint("BOTTOMRIGHT", 0, 1)
 		Castbar.Text:SetTextColor(1, 1, 1)
 
-		Castbar.Time:SetPoint('RIGHT', Castbar, -3, 0)
-		Castbar.Time:SetTextColor(1, 1, 1)
+		-- Castbar.Time:SetPoint("RIGHT", Castbar, -3, 0)
+		-- Castbar.Time:SetTextColor(1, 1, 1)
 
-		Castbar.Icon:SetSize( c.nameH - 6, c.nameH - 6 )
-		Castbar.Icon:SetTexCoord(0, 1, 0, 1)
-		Castbar.Icon:SetPoint( "TOPLEFT", 0, 0 )
+		-- Castbar.Icon:SetSize(c.nameH - 6, c.nameH - 6)
+		-- Castbar.Icon:SetTexCoord(0, 1, 0, 1)
+		-- Castbar.Icon:SetPoint("TOPLEFT", 0, 0)
+		-- Castbar.Icon.bg:SetPoint("TOPLEFT", Castbar.Icon, "TOPLEFT")
+		-- Castbar.Icon.bg:SetPoint("BOTTOMRIGHT", Castbar.Icon, "BOTTOMRIGHT")
+		-- Castbar.Icon.bg:SetVertexColor(0.25, 0.25, 0.25)
 
-		Castbar.Icon.bg:SetPoint("TOPLEFT", Castbar.Icon, "TOPLEFT")
-		Castbar.Icon.bg:SetPoint("BOTTOMRIGHT", Castbar.Icon, "BOTTOMRIGHT")
-		Castbar.Icon.bg:SetVertexColor(0.25, 0.25, 0.25)
+		-- Castbar.Shield:SetPoint("CENTER", Castbar.Icon )
+		-- local shieldIconSpace = 22 -- size of icon that would fit properly in the center of the shield
+		-- Castbar.Shield:SetWidth(40 * Castbar.Icon:GetWidth() / shieldIconSpace)
+		-- Castbar.Shield:SetHeight(50 * Castbar.Icon:GetHeight() / shieldIconSpace)
 
-		Castbar.SafeZone:SetTexture(1,0,0,.5)
+		Castbar.Spark:ClearAllPoints()
+		Castbar.Spark:SetPoint("CENTER", Castbar:GetStatusBarTexture(), "RIGHT", 0, 1)
+		Castbar.Spark:SetHeight(cbarHeight * 3.5)
+		Castbar.Spark:SetWidth(cbarHeight * 1.75)
 
-		Castbar.Shield:SetPoint( "CENTER", Castbar.Icon  )
-		local shieldIconSpace = 22 -- size of icon that would fit properly in the center of the shield
-		Castbar.Shield:SetWidth(40 * Castbar.Icon:GetWidth() / shieldIconSpace)
-		Castbar.Shield:SetHeight(50 * Castbar.Icon:GetHeight() / shieldIconSpace)
 	elseif self.Castbar then
 		self:DisableElement("Castbar")
 		self.Castbar:Hide()
