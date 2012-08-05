@@ -32,6 +32,12 @@ local _BACKDROP = {
 }
 --}}}
 --{{{ upvalues
+local CreateFrame = CreateFrame
+local GameFontNormal = GameFontNormal
+local InCombatLockdown = InCombatLockdown
+local UIParent = UIParent
+local error = error
+local next = next
 --}}}
 
 local getBackdrop --{{{
