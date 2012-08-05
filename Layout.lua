@@ -1389,20 +1389,17 @@ local PostUpdate = function(self, event)
 		if UnitIsPlayer(unit) then
 			self.RaceFrame:Hide()
 		else
-			local race = UnitCreatureFamily(unit) or UnitCreatureType(unit)
+			local race = UnitCreatureType(unit)
 			self.RaceFrame.text:SetText(race)
 			self.RaceFrame:SetWidth(self.RaceFrame.text:GetStringWidth() + 10)
 			self.RaceFrame:ClearAllPoints()
-			attach(self, "RaceFrame", "TOPLEFT", "corner", "BOTTOMLEFT", 0, 2)
-			-- FIXME: special logic for too-long races
-			-- if self.RaceFrame:GetWidth() > self.PortraitFrame:GetWidth() then
-				-- attachLeft = not attachLeft
-			-- end
-			-- if attachLeft then
-				-- self.RaceFrame:SetPoint("TOPLEFT", self.PortraitFrame, "BOTTOMLEFT", 0, 2)
-			-- else
-				-- self.RaceFrame:SetPoint("TOPRIGHT", self.PortraitFrame, "BOTTOMRIGHT", 0, 2)
-			-- end
+			if not c.portrait then
+				attach(self, "RaceFrame", "TOPRIGHT", "corner", "BOTTOMLEFT", 0, 2)
+			elseif self.RaceFrame:GetWidth() > self.PortraitFrame:GetWidth() then
+				attach(self, "RaceFrame", "TOPRIGHT", "PortraitFrame", "BOTTOMRIGHT", 0, 2)
+			else
+				attach(self, "RaceFrame", "TOPLEFT", "PortraitFrame", "BOTTOMLEFT", 0, 2)
+			end
 			self.RaceFrame:Show()
 		end
 	end
