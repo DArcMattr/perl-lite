@@ -80,6 +80,13 @@ local basicStyle = {
 	rangeAlphaCoef = false,
 	sounds = false,
 	castbar = false,
+	castTime = false,
+	castSafeZone = false,
+	castShield = true,
+	castIcon = false,
+	castIconSize = 20,
+	castIconX = -8,
+	castIconY = 0,
 	pvpSound = false,
 	portrait = false,
 	portraitW = 60,
@@ -134,6 +141,8 @@ local basicStyle = {
 local stylePrototypes = {
 	player = {
 		nestedAlpha = false,
+		castTime = true,
+		castSafeZone = true,
 		pvpSound = "Master",
 		portrait = "3d",
 		combatFeedback = true,
@@ -162,6 +171,7 @@ local stylePrototypes = {
 	},
 	target = {
 		sounds = "Master",
+		castbar = true,
 		portrait = "3d",
 		combatFeedback = true,
 		leftToRight = false,
@@ -1134,14 +1144,6 @@ local LayoutCastbar; do
 
 				Castbar.Text = self.NameFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 				Castbar.Text:Hide()
-				-- Castbar.Time = Castbar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-				-- Castbar.Icon = Castbar:CreateTexture(nil, "OVERLAY")
-				-- Castbar.Icon.bg = Castbar:CreateTexture(nil, "OVERLAY")
-				-- Castbar.SafeZone = Castbar:CreateTexture(nil, "OVERLAY")
-				-- Castbar.Shield = Castbar:CreateTexture(nil)
-				-- Castbar.Shield:SetDrawLayer("OVERLAY", 1)
-				-- Castbar.Shield:SetTexture([[Interface\CastingBar\UI-CastingBar-Arena-Shield]])
-				-- Castbar.Shield:SetTexCoord(0/64, 40/64, 6/64, 56/64)
 
 				Castbar.spark = Castbar:CreateTexture(nil) -- intentionally lower-case; "Spark" has unnecessary default behavior
 				Castbar.spark:SetDrawLayer("OVERLAY", 2)
@@ -1165,34 +1167,18 @@ local LayoutCastbar; do
 				Flash.border:SetBlendMode("ADD")
 			end
 			if not initial then self:EnableElement("Castbar") end
+
 			local ins = self.NameFrame:GetBackdrop().insets
 			Castbar:SetPoint("TOPLEFT", ins.left, -ins.top)
 			Castbar:SetPoint("BOTTOMRIGHT", -ins.right, ins.bottom)
 			local cbarHeight = c.nameH - ins.top - ins.bottom
 			local cbarWidth = c.nameW - ins.left - ins.right
-
 			Castbar:SetStatusBarTexture(profile.barTexture)
-			Castbar:SetStatusBarColor(1, .7, 0, .8)
 			Castbar:GetStatusBarTexture():SetDrawLayer("OVERLAY", 1)
 
 			Castbar.Text:SetPoint("TOPLEFT")
 			Castbar.Text:SetPoint("BOTTOMRIGHT", 0, 1)
 			Castbar.Text:SetTextColor(1, 1, 1)
-
-			-- Castbar.Time:SetPoint("RIGHT", Castbar, -3, 0)
-			-- Castbar.Time:SetTextColor(1, 1, 1)
-
-			-- Castbar.Icon:SetSize(c.nameH - 6, c.nameH - 6)
-			-- Castbar.Icon:SetTexCoord(0, 1, 0, 1)
-			-- Castbar.Icon:SetPoint("TOPLEFT", 0, 0)
-			-- Castbar.Icon.bg:SetPoint("TOPLEFT", Castbar.Icon, "TOPLEFT")
-			-- Castbar.Icon.bg:SetPoint("BOTTOMRIGHT", Castbar.Icon, "BOTTOMRIGHT")
-			-- Castbar.Icon.bg:SetVertexColor(0.25, 0.25, 0.25)
-
-			-- Castbar.Shield:SetPoint("CENTER", Castbar.Icon )
-			-- local shieldIconSpace = 22 -- size of icon that would fit properly in the center of the shield
-			-- Castbar.Shield:SetWidth(40 * Castbar.Icon:GetWidth() / shieldIconSpace)
-			-- Castbar.Shield:SetHeight(50 * Castbar.Icon:GetHeight() / shieldIconSpace)
 
 			Castbar.spark:SetHeight(cbarHeight * 3.5)
 			Castbar.spark:SetWidth(cbarHeight * 1.75)
@@ -1203,6 +1189,62 @@ local LayoutCastbar; do
 			Castbar.Flash:SetHeight(cbarHeight * (40 / 16))
 			Castbar.Flash.bg:SetTexture(profile.barTexture)
 			Castbar.Flash.bg:SetDrawLayer("OVERLAY", 1)
+
+			if c.castTime then
+				if not Castbar._time then
+					Castbar._time = Castbar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+					Castbar._time:SetPoint("RIGHT", Castbar, -3, 0)
+					Castbar._time:SetTextColor(1, 1, 1)
+				end
+				Castbar.Time = Castbar._time
+				Castbar.Time:Show()
+			elseif Castbar._time then
+				Castbar._time:Hide()
+				Castbar.Time = nil
+			end
+
+			if c.castSafeZone then
+				if not Castbar._safezone then
+					Castbar._safezone = Castbar:CreateTexture(nil, "OVERLAY")
+					Castbar._safezone:SetTexture(1, 0, 0)
+				end
+				Castbar.SafeZone = Castbar._safezone
+			elseif Castbar._safezone then
+				Castbar._safezone:Hide()
+				Castbar.SafeZone = nil
+			end
+
+			if c.castIcon then
+				if not Castbar._icon then
+					Castbar._icon = self:CreateTexture(nil)
+					Castbar._icon:SetDrawLayer("OVERLAY", 3)
+				end
+				Castbar.Icon = Castbar._icon
+				Castbar.Icon:Hide()
+				Castbar.Icon:SetSize(c.castIconSize, c.castIconSize)
+				Castbar.Icon:SetPoint("CENTER", self.NameFrame, c.castIcon, c.castIconX, c.castIconY)
+			elseif Castbar._icon then
+				Castbar._icon:Hide()
+				Castbar.Icon = nil
+			end
+
+			if c.castShield and c.castIcon then
+				if not Castbar._shield then
+					Castbar._shield = self:CreateTexture(nil)
+					Castbar._shield:SetDrawLayer("OVERLAY", 4)
+					Castbar._shield:SetTexture([[Interface\CastingBar\UI-CastingBar-Arena-Shield]])
+					Castbar._shield:SetTexCoord(0/64, 40/64, 6/64, 56/64)
+					Castbar._shield:SetPoint("CENTER", Castbar.Icon)
+				end
+				Castbar.Shield = Castbar._shield
+				Castbar.Shield:Hide()
+				local shieldIconSpace = 22 -- size of icon that would fit properly in the center of the shield
+				Castbar.Shield:SetWidth(40 * c.castIconSize / shieldIconSpace)
+				Castbar.Shield:SetHeight(50 * c.castIconSize / shieldIconSpace)
+			elseif Castbar._shield then
+				Castbar._shield:Hide()
+				Castbar.Shield = nil
+			end
 
 		elseif self.Castbar then
 			self:DisableElement("Castbar")
