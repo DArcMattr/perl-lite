@@ -1038,6 +1038,14 @@ local LayoutCastbar; do
 			error("Castbar FlashAndFade error. Hiding frame.")
 		end
 	end
+	local function Castbar_OnHide(self)
+		self.Text:Hide()
+		if self.Icon then self.Icon:Hide() end
+		if self.Shield then self.Shield:Hide() end
+		self.Flash:Hide()
+		self.Flash.nameref:Show()
+		self.Flash.nameref:SetAlpha(1)
+	end
 	local function FlashAndFade(self, failure, r, g, b)
 		local flash = self.Flash
 		if r then
@@ -1053,6 +1061,8 @@ local LayoutCastbar; do
 		end
 		-- Additional calls can change color or convert to failure (above), but can't restart the animation (below).
 		if not flash.fadeOut then
+			self.Text:Show()
+			flash.nameref:Hide()
 			if failure then
 				flash.fadeIn = nil
 				flash.holdTime = 1
@@ -1073,6 +1083,7 @@ local LayoutCastbar; do
 		self.Flash.fadeOut = nil
 		self.__owner.Name:Hide()
 		self.Text:Show()
+		if self.Icon then self.Icon:Show() end
 		self:SetAlpha(alpha)
 		self.Text:SetAlpha(alpha)
 		self:SetStatusBarColor(r, g, b, self.__owner.settings.alpha / 255)
@@ -1113,6 +1124,7 @@ local LayoutCastbar; do
 
 				Castbar.FlashAndFade = FlashAndFade
 				Castbar.ClearFlashing = ClearFlashing
+				Castbar:SetScript("OnHide", Castbar_OnHide)
 				Castbar.PostCastStart = PostCastStart
 				Castbar.PostCastFailed = PostCastFailed
 				Castbar.PostCastInterrupted = PostCastInterrupted
@@ -1121,6 +1133,7 @@ local LayoutCastbar; do
 				Castbar.PostChannelStop = PostChannelStop
 
 				Castbar.Text = self.NameFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+				Castbar.Text:Hide()
 				-- Castbar.Time = Castbar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 				-- Castbar.Icon = Castbar:CreateTexture(nil, "OVERLAY")
 				-- Castbar.Icon.bg = Castbar:CreateTexture(nil, "OVERLAY")
