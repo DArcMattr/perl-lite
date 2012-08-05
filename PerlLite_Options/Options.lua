@@ -410,7 +410,6 @@ do --{{{ Module:MakeSectionArgs()
 	section.classIcon = classIcon
 	section.eliteType = eliteType
 	section.npcRace = npcRace
-	MakeIconSettings(section, "pvpIcon", "PvP Icon")
 	section.pvpTimer = pvpTimer
 	section.nameW = nameW
 	section.nameH = nameH
@@ -429,6 +428,7 @@ do --{{{ Module:MakeSectionArgs()
 	section.healthFontSize = healthFontSize
 	section.powerFontSize = powerFontSize
 	section.nameLeft = nameLeft
+	MakeIconSettings(section, "pvpIcon", "PvP Icon")
 	MakeIconSettings(section, "raidIcon", "Raid Icon")
 	MakeIconSettings(section, "leaderIcon", "Leader Icon")
 	MakeIconSettings(section, "masterLooterIcon", "Master Looter Icon")
