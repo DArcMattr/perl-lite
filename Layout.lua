@@ -960,7 +960,7 @@ local function LayoutNameAndStats(self, c, initial)
 
 	UpdateFrameGradient(self.StatsFrame)
 	self.StatsFrame:ClearAllPoints()
-	self.StatsFrame:SetSize(c.statsW, c.healthH + c.powerH + 10)
+	self.StatsFrame:SetSize(c.statsW, c.healthH + (self.Power:IsShown() and c.powerH or 0) + 10)
 
 	UpdateBarTextures(self.Health)
 	self.Health.text.formatValMax = Module.valMaxFormatters[c.healthFormat]
