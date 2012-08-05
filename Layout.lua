@@ -1,6 +1,6 @@
 --[[-------------------------------------------------------------------------
 	"PerlLite" - a Perl layout for oUF
-	Copyright (C) 2012  Morsk
+	Copyright (C) 2012	Morsk
 	All Rights Reserved.
 ---------------------------------------------------------------------------]]
 --{{{ top
@@ -1003,8 +1003,9 @@ local function LayoutCastbar(self, c, initial)
 		if not Castbar then
 			self.Castbar = CreateFrame( "StatusBar", nil, self.NameFrame )
 			Castbar = self.Castbar
+			Castbar:SetFrameLevel(self.NameFrame:GetFrameLevel()+1)
 			Castbar:SetBackdrop( {
-				bgFile = Core.texturePath..[[black0_32px]], tile = true, tileSize = 32,
+				bgFile = [[Interface\ChatFrame\ChatFrameBackground]], tile = true, tileSize = 32,
 				insets = {left = 0, right = 0, top = 0, bottom = 0},
 			})
 			Castbar.Text = Castbar:CreateFontString(nil, 'OVERLAY', "GameFontNormalSmall")
@@ -1012,17 +1013,13 @@ local function LayoutCastbar(self, c, initial)
 			Castbar.Icon = Castbar:CreateTexture(nil, 'OVERLAY')
 			Castbar.Icon.bg = Castbar:CreateTexture(nil, 'OVERLAY')
 			Castbar.SafeZone = Castbar:CreateTexture(nil, "OVERLAY")
+			Castbar.Spark = Castbar:CreateTexture(nil, "OVERLAY")
 			Castbar.Shield = Castbar:CreateTexture(nil)
-			Castbar.Shield:SetDrawLayer("OVERLAY", 1)
-			Castbar.Shield:SetTexture([[Interface\CastingBar\UI-CastingBar-Arena-Shield]])
-			Castbar.Shield:SetTexCoord(0/64, 40/64, 6/64, 56/64)
 		end
 		if not initial then self:EnableElement("Castbar") end
 		Castbar:SetPoint( "TOPLEFT", 4, -4 )
 		Castbar:SetPoint( "BOTTOMRIGHT", -4, 4 )
-		Castbar:SetFrameLevel(6)
 
-		Castbar:SetBackdropBorderColor(.5, .5, .5, 1)
 		Castbar:SetBackdropColor( 0, 0, 0, 1 )
 		Castbar:SetStatusBarTexture( profile.barTexture )
 		Castbar:SetStatusBarColor( 1, 1, 0 )
@@ -1033,7 +1030,7 @@ local function LayoutCastbar(self, c, initial)
 		Castbar.Time:SetPoint('RIGHT', Castbar, -3, 0)
 		Castbar.Time:SetTextColor(1, 1, 1)
 
-		Castbar.Icon:SetSize( c.nameH - 6, c.nameH - 6 )
+		Castbar.Icon:SetSize( c.nameH - 8, c.nameH - 8 )
 		Castbar.Icon:SetTexCoord(0, 1, 0, 1)
 		Castbar.Icon:SetPoint( "TOPLEFT", 0, 0 )
 
@@ -1041,12 +1038,30 @@ local function LayoutCastbar(self, c, initial)
 		Castbar.Icon.bg:SetPoint("BOTTOMRIGHT", Castbar.Icon, "BOTTOMRIGHT")
 		Castbar.Icon.bg:SetVertexColor(0.25, 0.25, 0.25)
 
-		Castbar.SafeZone:SetTexture(1,0,0,.5)
+		Castbar.Spark:SetTexture([[Interface\CastingBar\UI-CastingBar-Spark]])
+		Castbar.Spark:SetBlendMode("ADD")
+		Castbar.Spark:SetHeight(Castbar.Icon:GetHeight() * 32/9 )
+		Castbar.Spark:SetAlpha( .8 )
 
-		Castbar.Shield:SetPoint( "CENTER", Castbar.Icon  )
-		local shieldIconSpace = 22 -- size of icon that would fit properly in the center of the shield
-		Castbar.Shield:SetWidth(40 * Castbar.Icon:GetWidth() / shieldIconSpace)
-		Castbar.Shield:SetHeight(50 * Castbar.Icon:GetHeight() / shieldIconSpace)
+		local u = self.unit
+		if ( u == "target" or u == "targettarget" or u == "focus" or u == "focustarget" ) then
+			Castbar.Shield:SetPoint("CENTER", Castbar.Icon)
+			Castbar.Shield:SetDrawLayer("OVERLAY", 1)
+			Castbar.Shield:SetTexture([[Interface\CastingBar\UI-CastingBar-Arena-Shield]])
+			Castbar.Shield:SetTexCoord(0/64, 40/64, 6/64, 56/64)
+
+			local shieldIconSpace = 22 -- size of icon that would fit properly in the center of the shield
+			Castbar.Shield:SetWidth(40 * Castbar.Icon:GetWidth() / shieldIconSpace)
+			Castbar.Shield:SetHeight(50 * Castbar.Icon:GetHeight() / shieldIconSpace)
+		else
+			Castbar.Shield = nil
+		end
+
+		if ( self.unit == "player" ) then
+			Castbar.SafeZone:SetTexture(1,0,0,.5)
+		else
+			Castbar.SafeZone = nil
+		end
 	elseif self.Castbar then
 		self:DisableElement("Castbar")
 		self.Castbar:Hide()
