@@ -1146,7 +1146,7 @@ local LayoutCastbar; do
 				Castbar.Text:Hide()
 
 				Castbar.spark = Castbar:CreateTexture(nil) -- intentionally lower-case; "Spark" has unnecessary default behavior
-				Castbar.spark:SetDrawLayer("OVERLAY", 2)
+				Castbar.spark:SetDrawLayer("OVERLAY", 4)
 				Castbar.spark:SetTexture([[Interface\CastingBar\UI-CastingBar-Spark]])
 				Castbar.spark:SetBlendMode("ADD")
 
@@ -1217,7 +1217,7 @@ local LayoutCastbar; do
 			if c.castIcon then
 				if not Castbar._icon then
 					Castbar._icon = self:CreateTexture(nil)
-					Castbar._icon:SetDrawLayer("OVERLAY", 3)
+					Castbar._icon:SetDrawLayer("OVERLAY", 2)
 				end
 				Castbar.Icon = Castbar._icon
 				Castbar.Icon:Hide()
@@ -1231,7 +1231,7 @@ local LayoutCastbar; do
 			if c.castShield and c.castIcon then
 				if not Castbar._shield then
 					Castbar._shield = self:CreateTexture(nil)
-					Castbar._shield:SetDrawLayer("OVERLAY", 4)
+					Castbar._shield:SetDrawLayer("OVERLAY", 3)
 					Castbar._shield:SetTexture([[Interface\CastingBar\UI-CastingBar-Arena-Shield]])
 					Castbar._shield:SetTexCoord(0/64, 40/64, 6/64, 56/64)
 					Castbar._shield:SetPoint("CENTER", Castbar.Icon)
