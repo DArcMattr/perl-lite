@@ -15,16 +15,16 @@ local profile
 --}}}
 --{{{ upvalues
 -- GLOBALS: CreateFrame
+-- GLOBALS: FAILED
 -- GLOBALS: GameFontNormal
 -- GLOBALS: IsResting
+-- GLOBALS: SPELL_FAILED_INTERRUPTED
 -- GLOBALS: ToggleDropDownMenu
 -- GLOBALS: UnitAffectingCombat
 -- GLOBALS: UnitClass
 -- GLOBALS: UnitClassification
 -- GLOBALS: UnitCreatureFamily
 -- GLOBALS: UnitCreatureType
--- GLOBALS: FAILED
--- GLOBALS: SPELL_FAILED_INTERRUPTED
 -- GLOBALS: UnitFactionGroup
 -- GLOBALS: UnitFrame_OnEnter
 -- GLOBALS: UnitFrame_OnLeave
@@ -37,6 +37,7 @@ local profile
 -- GLOBALS: UnitIsDead
 -- GLOBALS: UnitIsEnemy
 -- GLOBALS: UnitIsGhost
+-- GLOBALS: UnitIsPVP
 -- GLOBALS: UnitIsPlayer
 -- GLOBALS: UnitIsTapped
 -- GLOBALS: UnitIsTappedByPlayer
@@ -387,7 +388,11 @@ local HealthOverride = function(self, event, unit, powerType)
 				react = 4 -- neutral
 			end
 		end
-		nameColor = self.colors.reaction[react]
+		if react >= 5 and UnitPlayerControlled(unit) and not UnitIsPVP(unit) then
+			nameColor = self.colors.nameDefault
+		else
+			nameColor = self.colors.reaction[react]
+		end
 	end
 	name:SetTextColor(nameColor[1], nameColor[2], nameColor[3])
 
