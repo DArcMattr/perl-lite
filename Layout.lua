@@ -245,7 +245,6 @@ local backdrop_black0 = {
 local grad1r, grad1g, grad1b, grad1a, grad2r, grad2g, grad2b, grad2a
 --}}} textures & backdrops
 
-
 local complainsInvalidStyleProperty = {
 	__index = function(self, key)
 		error("invalid style property: "..(self._style or "???").."."..tostring(key))

@@ -65,7 +65,7 @@ do
 		backdrop:Hide()
 
 		backdrop:SetBackdrop(_BACKDROP)
-		backdrop:SetFrameStrata"TOOLTIP"
+		backdrop:SetFrameStrata"DIALOG"
 		backdrop:SetAllPoints(obj)
 
 		backdrop:EnableMouse(true)
