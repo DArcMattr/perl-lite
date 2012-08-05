@@ -831,7 +831,7 @@ local function LayoutLevel(self, c, initial)
 	-- Level
 	if c.level then
 		if not self.Level then
-			self.Level = self.LevelFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+			self.Level = self.LevelFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
 		end
 		if not initial then self:EnableElement("Level") end
 		self.Level:ClearAllPoints()
