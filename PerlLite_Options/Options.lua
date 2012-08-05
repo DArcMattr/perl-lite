@@ -62,6 +62,11 @@ do
 	end
 end
 
+local function generic_disabled_castbar(info)
+	local style = info[#info-1]
+	return not profile[style].castbar
+end
+
 local function generic_disabled_style(info)
 	if #info == 2 then
 		local setting, style = info[#info], info[#info-1]
@@ -126,6 +131,32 @@ do --{{{ Module:MakeSectionArgs()
 		local val = _nextOrder
 		_nextOrder = _nextOrder + 1
 		return val
+	end
+	local section = {}
+
+	local function MakeIconSettings(t, name, cname)
+		t[name] = { order = nextOrder(),
+			type = "select",
+			name = cname,
+			values = point_values,
+			get = generic_get_style_or_false,
+			set = generic_set_style_or_false,
+		}
+		t[name.."Size"] = { order = nextOrder(),
+			type = "range",
+			name = cname.." Size",
+			min = 10, max = 35, step = 1,
+		}
+		t[name.."X"] = { order = nextOrder(),
+			type = "range",
+			name = cname.." X",
+			min = -40, max = 40, step = 1,
+		}
+		t[name.."Y"] = { order = nextOrder(),
+			type = "range",
+			name = cname.." Y",
+			min = -40, max = 40, step = 1,
+		}
 	end
 
 	-- enabled = true,
@@ -211,10 +242,50 @@ do --{{{ Module:MakeSectionArgs()
 		name = "Portrait Height",
 		min = 40, max = 80, step = 1,
 	}
+	local _castbar_header = { order = nextOrder(),
+		type = "header",
+		name = "Cast Bar",
+	}
 	-- castbar = true
 	local castbar = { order = nextOrder(),
 		type = "toggle",
 		name = "Cast Bar",
+		width = "half",
+	}
+	-- castTime = true,
+	local castTime = { order = nextOrder(),
+		type = "toggle",
+		name = "Time",
+		width = "half",
+		disabled = generic_disabled_castbar,
+	}
+	-- castSafeZone = true,
+	local castSafeZone = { order = nextOrder(),
+		type = "toggle",
+		name = "Latency",
+		width = "half",
+		disabled = generic_disabled_castbar,
+	}
+	-- castShield = true,
+	local castShield = { order = nextOrder(),
+		type = "toggle",
+		name = "Shield",
+		desc = "Display a shield around the Cast Icon, when the spell is not interruptable. This is unreliable, and is up to Blizzard to flag spells appropriately.",
+		width = "half",
+		disabled = function(info)
+			if generic_disabled_castbar(info) then return true end
+			local style = info[#info-1]
+			return not profile[style].castIcon
+		end,
+	}
+	MakeIconSettings(section, "castIcon", "Cast Icon")
+	section.castIcon.disabled = generic_disabled_castbar
+	section.castIconSize.disabled = generic_disabled_castbar
+	section.castIconX.disabled = generic_disabled_castbar
+	section.castIconY.disabled = generic_disabled_castbar
+	local _castbar_end_header = { order = nextOrder(),
+		type = "header",
+		name = "",
 	}
 	-- leftToRight = true,
 	local leftToRight = { order = nextOrder(),
@@ -365,32 +436,6 @@ do --{{{ Module:MakeSectionArgs()
 		name = "Name-on-Left",
 	}
 
-	local function MakeIconSettings(t, name, cname)
-		t[name] = { order = nextOrder(),
-			type = "select",
-			name = cname,
-			values = point_values,
-			get = generic_get_style_or_false,
-			set = generic_set_style_or_false,
-		}
-		t[name.."Size"] = { order = nextOrder(),
-			type = "range",
-			name = cname.." Size",
-			min = 10, max = 35, step = 1,
-		}
-		t[name.."X"] = { order = nextOrder(),
-			type = "range",
-			name = cname.." X",
-			min = -40, max = 40, step = 1,
-		}
-		t[name.."Y"] = { order = nextOrder(),
-			type = "range",
-			name = cname.." Y",
-			min = -40, max = 40, step = 1,
-		}
-	end
-
-	local section = {}
 	section.enabled = enabled
 	section.scale = scale
 	section.alpha = alpha
@@ -401,7 +446,12 @@ do --{{{ Module:MakeSectionArgs()
 	section.portrait = portrait
 	section.portraitW = portraitW
 	section.portraitH = portraitH
+	section._castbar_header = _castbar_header
 	section.castbar = castbar
+	section.castTime = castTime
+	section.castSafeZone = castSafeZone
+	section.castShield = castShield
+	section._castbar_end_header = _castbar_end_header
 	section.leftToRight = leftToRight
 	section.healPrediction = healPrediction
 	section.combatFeedback = combatFeedback
@@ -410,7 +460,6 @@ do --{{{ Module:MakeSectionArgs()
 	section.classIcon = classIcon
 	section.eliteType = eliteType
 	section.npcRace = npcRace
-	MakeIconSettings(section, "pvpIcon", "PvP Icon")
 	section.pvpTimer = pvpTimer
 	section.nameW = nameW
 	section.nameH = nameH
@@ -429,6 +478,7 @@ do --{{{ Module:MakeSectionArgs()
 	section.healthFontSize = healthFontSize
 	section.powerFontSize = powerFontSize
 	section.nameLeft = nameLeft
+	MakeIconSettings(section, "pvpIcon", "PvP Icon")
 	MakeIconSettings(section, "raidIcon", "Raid Icon")
 	MakeIconSettings(section, "leaderIcon", "Leader Icon")
 	MakeIconSettings(section, "masterLooterIcon", "Master Looter Icon")

@@ -23,6 +23,8 @@ local profile
 -- GLOBALS: UnitClassification
 -- GLOBALS: UnitCreatureFamily
 -- GLOBALS: UnitCreatureType
+-- GLOBALS: FAILED
+-- GLOBALS: SPELL_FAILED_INTERRUPTED
 -- GLOBALS: UnitFactionGroup
 -- GLOBALS: UnitFrame_OnEnter
 -- GLOBALS: UnitFrame_OnLeave
@@ -78,6 +80,13 @@ local basicStyle = {
 	rangeAlphaCoef = false,
 	sounds = false,
 	castbar = false,
+	castTime = false,
+	castSafeZone = false,
+	castShield = true,
+	castIcon = false,
+	castIconSize = 20,
+	castIconX = -8,
+	castIconY = 0,
 	pvpSound = false,
 	portrait = false,
 	portraitW = 60,
@@ -132,6 +141,8 @@ local basicStyle = {
 local stylePrototypes = {
 	player = {
 		nestedAlpha = false,
+		castTime = true,
+		castSafeZone = true,
 		pvpSound = "Master",
 		portrait = "3d",
 		combatFeedback = true,
@@ -160,6 +171,7 @@ local stylePrototypes = {
 	},
 	target = {
 		sounds = "Master",
+		castbar = true,
 		portrait = "3d",
 		combatFeedback = true,
 		leftToRight = false,
@@ -495,7 +507,7 @@ local PortraitPostUpdate3D = function(self, unit)
 	end
 end
 
-local HealPredictionOverride = function (self, event, unit)
+local HealPredictionOverride = function(self, event, unit)
 	if self.unit ~= unit then return end
 	local hp = self.HealPrediction
 	local incoming = UnitGetIncomingHeals(unit) or 0
@@ -831,7 +843,7 @@ local function LayoutLevel(self, c, initial)
 	-- Level
 	if c.level then
 		if not self.Level then
-			self.Level = self.LevelFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+			self.Level = self.LevelFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
 		end
 		if not initial then self:EnableElement("Level") end
 		self.Level:ClearAllPoints()
@@ -996,59 +1008,248 @@ local function LayoutSounds(self, c, initial)
 	end
 end
 
-local function LayoutCastbar(self, c, initial)
-	if c.castbar then
-		local Castbar = self.Castbar
-		if not Castbar then
-			self.Castbar = CreateFrame( "StatusBar", nil, self.NameFrame )
-			Castbar = self.Castbar
-			Castbar:SetBackdrop( {
-				bgFile = Core.texturePath..[[black0_32px]], tile = true, tileSize = 32,
-				insets = {left = 0, right = 0, top = 0, bottom = 0},
-			})
-			Castbar.Text = Castbar:CreateFontString(nil, 'OVERLAY', "GameFontNormalSmall")
-			Castbar.Time = Castbar:CreateFontString(nil, 'OVERLAY', "GameFontNormalSmall")
-			Castbar.Icon = Castbar:CreateTexture(nil, 'OVERLAY')
-			Castbar.Icon.bg = Castbar:CreateTexture(nil, 'OVERLAY')
-			Castbar.SafeZone = Castbar:CreateTexture(nil, "OVERLAY")
-			Castbar.Shield = Castbar:CreateTexture(nil)
-			Castbar.Shield:SetDrawLayer("OVERLAY", 1)
-			Castbar.Shield:SetTexture([[Interface\CastingBar\UI-CastingBar-Arena-Shield]])
-			Castbar.Shield:SetTexCoord(0/64, 40/64, 6/64, 56/64)
+local LayoutCastbar; do
+	local function Flash_OnUpdate(self, elapsed)
+		if self.fadeIn then
+			local alpha = self.fadeIn + (elapsed * 3)
+			if alpha < 1 then
+				self.border:SetAlpha(alpha)
+				self.fadeIn = alpha
+			else
+				self.border:SetAlpha(1)
+				self.fadeIn = nil
+				self.nameref:Show()
+				self.nameref:SetAlpha(1 - self.fadeOut)
+			end
+		elseif self.holdTime then
+			local holdTime = self.holdTime - elapsed
+			if holdTime > 0 then
+				self.holdTime = holdTime
+			else
+				self.holdTime = nil
+				self.nameref:Show()
+				self.nameref:SetAlpha(1 - self.fadeOut)
+			end
+		elseif self.fadeOut then
+			local alpha = self.fadeOut - (elapsed * 2)
+			if alpha > 0 then
+				self:SetAlpha(alpha)
+				self.textref:SetAlpha(alpha)
+				self.nameref:SetAlpha(1 - alpha)
+				self.fadeOut = alpha
+			else
+				self:Hide()
+				self.textref:Hide()
+				self.nameref:SetAlpha(1)
+				self.fadeOut = nil
+			end
+		else
+			self:Hide()
+			error("Castbar FlashAndFade error. Hiding frame.")
 		end
-		if not initial then self:EnableElement("Castbar") end
-		Castbar:SetPoint( "TOPLEFT", 4, -4 )
-		Castbar:SetPoint( "BOTTOMRIGHT", -4, 4 )
-		Castbar:SetFrameLevel(6)
+	end
+	local function Castbar_OnHide(self)
+		self.Text:Hide()
+		if self.Icon then self.Icon:Hide() end
+		if self.Shield then self.Shield:Hide() end
+		self.Flash:Hide()
+		self.Flash.nameref:Show()
+		self.Flash.nameref:SetAlpha(1)
+	end
+	local function FlashAndFade(self, failure, r, g, b)
+		local flash = self.Flash
+		if r then
+			flash.bg:Show()
+			flash.bg:SetVertexColor(r, g, b)
+		else
+			flash.bg:Hide()
+		end
+		if failure and flash.fadeIn then
+			flash.fadeIn = nil
+			flash.holdTime = 1
+			flash.border:Hide()
+		end
+		-- Additional calls can change color or convert to failure (above), but can't restart the animation (below).
+		if not flash.fadeOut then
+			self.Text:Show()
+			flash.nameref:Hide()
+			if failure then
+				flash.fadeIn = nil
+				flash.holdTime = 1
+				flash.border:Hide()
+			else
+				flash.fadeIn = 0
+				flash.holdTime = nil
+				flash.border:Show()
+			end
+			local alpha = self:GetAlpha()
+			flash:SetAlpha(alpha)
+			flash.fadeOut = alpha
+			flash:Show()
+		end
+	end
+	local function ClearFlashing(self, r, g, b, alpha)
+		self.Flash:Hide()
+		self.Flash.fadeOut = nil
+		self.__owner.Name:Hide()
+		self.Text:Show()
+		if self.Icon then self.Icon:Show() end
+		self:SetAlpha(alpha)
+		self.Text:SetAlpha(alpha)
+		self:SetStatusBarColor(r, g, b, self.__owner.settings.alpha / 255)
+	end
 
-		Castbar:SetBackdropBorderColor(.5, .5, .5, 1)
-		Castbar:SetBackdropColor( 0, 0, 0, 1 )
-		Castbar:SetStatusBarTexture( profile.barTexture )
-		Castbar:SetStatusBarColor( 1, 1, 0 )
+	local function PostCastStart(self, unit, name, _, castid)
+		return self:ClearFlashing(1, .7, 0, 0.8)
+	end
+	local function PostCastFailed(self, unit, spellname, _, castid)
+		self.Text:SetText(FAILED)
+		return self:FlashAndFade(true, 1, 0, 0)
+	end
+	local function PostCastInterrupted(self, unit, spellname, _, castid)
+		self.Text:SetText(SPELL_FAILED_INTERRUPTED)
+		return self:FlashAndFade(true, 1, 0, 0)
+	end
+	local function PostCastStop(self, unit, spellname, _, castid)
+		if not self.Flash.fadeOut then -- don't let success overwrite failure
+			return self:FlashAndFade(false, 0, 1, 0)
+		end
+	end
+	local function PostChannelStart(self, unit, name)
+		return self:ClearFlashing(0, 1, 0, 1)
+	end
+	local function PostChannelStop(self, unit, spellname)
+		if not self.Flash.fadeOut then -- don't let success overwrite failure
+			return self:FlashAndFade(false)
+		end
+	end
 
-		Castbar.Text:SetPoint('LEFT', Castbar, c.nameH, 0)
-		Castbar.Text:SetTextColor(1, 1, 1)
+	function LayoutCastbar(self, c, initial)
+		if c.castbar then
+			local Castbar = self.Castbar
+			if not Castbar then
+				self.Castbar = CreateFrameSameLevel("StatusBar", nil, self.NameFrame)
+				Castbar = self.Castbar
+				Castbar:Hide()
 
-		Castbar.Time:SetPoint('RIGHT', Castbar, -3, 0)
-		Castbar.Time:SetTextColor(1, 1, 1)
+				Castbar.FlashAndFade = FlashAndFade
+				Castbar.ClearFlashing = ClearFlashing
+				Castbar:SetScript("OnHide", Castbar_OnHide)
+				Castbar.PostCastStart = PostCastStart
+				Castbar.PostCastFailed = PostCastFailed
+				Castbar.PostCastInterrupted = PostCastInterrupted
+				Castbar.PostCastStop = PostCastStop
+				Castbar.PostChannelStart = PostChannelStart
+				Castbar.PostChannelStop = PostChannelStop
 
-		Castbar.Icon:SetSize( c.nameH - 6, c.nameH - 6 )
-		Castbar.Icon:SetTexCoord(0, 1, 0, 1)
-		Castbar.Icon:SetPoint( "TOPLEFT", 0, 0 )
+				Castbar.Text = self.NameFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+				Castbar.Text:Hide()
 
-		Castbar.Icon.bg:SetPoint("TOPLEFT", Castbar.Icon, "TOPLEFT")
-		Castbar.Icon.bg:SetPoint("BOTTOMRIGHT", Castbar.Icon, "BOTTOMRIGHT")
-		Castbar.Icon.bg:SetVertexColor(0.25, 0.25, 0.25)
+				Castbar.spark = Castbar:CreateTexture(nil) -- intentionally lower-case; "Spark" has unnecessary default behavior
+				Castbar.spark:SetDrawLayer("OVERLAY", 2)
+				Castbar.spark:SetTexture([[Interface\CastingBar\UI-CastingBar-Spark]])
+				Castbar.spark:SetBlendMode("ADD")
 
-		Castbar.SafeZone:SetTexture(1,0,0,.5)
+				Castbar.Flash = CreateFrameSameLevel("Frame", nil, self.NameFrame)
+				local Flash = Castbar.Flash
+				Flash:Hide()
+				Flash:SetScript("OnUpdate", Flash_OnUpdate)
+				Flash:SetPoint("CENTER", Castbar)
+				Flash.nameref = self.Name
+				Flash.textref = Castbar.Text
+				Flash.bg = Flash:CreateTexture(nil, "BACKGROUND")
+				Flash.bg:SetPoint("TOPLEFT", Castbar)
+				Flash.bg:SetPoint("BOTTOMRIGHT", Castbar)
+				Flash.border = Flash:CreateTexture(nil, "OVERLAY")
+				Flash.border:SetAllPoints()
+				Flash.border:SetTexture(Core.texturePath..[[bigbarflash]])
+				Flash.border:SetDrawLayer("OVERLAY", 2)
+				Flash.border:SetBlendMode("ADD")
+			end
+			if not initial then self:EnableElement("Castbar") end
 
-		Castbar.Shield:SetPoint( "CENTER", Castbar.Icon  )
-		local shieldIconSpace = 22 -- size of icon that would fit properly in the center of the shield
-		Castbar.Shield:SetWidth(40 * Castbar.Icon:GetWidth() / shieldIconSpace)
-		Castbar.Shield:SetHeight(50 * Castbar.Icon:GetHeight() / shieldIconSpace)
-	elseif self.Castbar then
-		self:DisableElement("Castbar")
-		self.Castbar:Hide()
+			local ins = self.NameFrame:GetBackdrop().insets
+			Castbar:SetPoint("TOPLEFT", ins.left, -ins.top)
+			Castbar:SetPoint("BOTTOMRIGHT", -ins.right, ins.bottom)
+			local cbarHeight = c.nameH - ins.top - ins.bottom
+			local cbarWidth = c.nameW - ins.left - ins.right
+			Castbar:SetStatusBarTexture(profile.barTexture)
+			Castbar:GetStatusBarTexture():SetDrawLayer("OVERLAY", 1)
+
+			Castbar.Text:SetPoint("TOPLEFT")
+			Castbar.Text:SetPoint("BOTTOMRIGHT", 0, 1)
+			Castbar.Text:SetTextColor(1, 1, 1)
+
+			Castbar.spark:SetHeight(cbarHeight * 3.5)
+			Castbar.spark:SetWidth(cbarHeight * 1.75)
+			Castbar.spark:ClearAllPoints()
+			Castbar.spark:SetPoint("CENTER", Castbar:GetStatusBarTexture(), "RIGHT")
+
+			Castbar.Flash:SetWidth(cbarWidth * (164 / 152))
+			Castbar.Flash:SetHeight(cbarHeight * (40 / 16))
+			Castbar.Flash.bg:SetTexture(profile.barTexture)
+			Castbar.Flash.bg:SetDrawLayer("OVERLAY", 1)
+
+			if c.castTime then
+				if not Castbar._time then
+					Castbar._time = Castbar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+					Castbar._time:SetPoint("RIGHT", Castbar, -3, 0)
+					Castbar._time:SetTextColor(1, 1, 1)
+				end
+				Castbar.Time = Castbar._time
+				Castbar.Time:Show()
+			elseif Castbar._time then
+				Castbar._time:Hide()
+				Castbar.Time = nil
+			end
+
+			if c.castSafeZone then
+				if not Castbar._safezone then
+					Castbar._safezone = Castbar:CreateTexture(nil, "OVERLAY")
+					Castbar._safezone:SetTexture(1, 0, 0)
+				end
+				Castbar.SafeZone = Castbar._safezone
+			elseif Castbar._safezone then
+				Castbar._safezone:Hide()
+				Castbar.SafeZone = nil
+			end
+
+			if c.castIcon then
+				if not Castbar._icon then
+					Castbar._icon = self:CreateTexture(nil)
+					Castbar._icon:SetDrawLayer("OVERLAY", 3)
+				end
+				Castbar.Icon = Castbar._icon
+				Castbar.Icon:Hide()
+				Castbar.Icon:SetSize(c.castIconSize, c.castIconSize)
+				Castbar.Icon:SetPoint("CENTER", self.NameFrame, c.castIcon, c.castIconX, c.castIconY)
+			elseif Castbar._icon then
+				Castbar._icon:Hide()
+				Castbar.Icon = nil
+			end
+
+			if c.castShield and c.castIcon then
+				if not Castbar._shield then
+					Castbar._shield = self:CreateTexture(nil)
+					Castbar._shield:SetDrawLayer("OVERLAY", 4)
+					Castbar._shield:SetTexture([[Interface\CastingBar\UI-CastingBar-Arena-Shield]])
+					Castbar._shield:SetTexCoord(0/64, 40/64, 6/64, 56/64)
+					Castbar._shield:SetPoint("CENTER", Castbar.Icon)
+				end
+				Castbar.Shield = Castbar._shield
+				Castbar.Shield:Hide()
+				local shieldIconSpace = 22 -- size of icon that would fit properly in the center of the shield
+				Castbar.Shield:SetWidth(40 * c.castIconSize / shieldIconSpace)
+				Castbar.Shield:SetHeight(50 * c.castIconSize / shieldIconSpace)
+			elseif Castbar._shield then
+				Castbar._shield:Hide()
+				Castbar.Shield = nil
+			end
+
+		elseif self.Castbar then
+			self:DisableElement("Castbar")
+			self.Castbar:Hide()
+		end
 	end
 end
 

@@ -21,7 +21,8 @@ local skullTexture = [[Interface\TargetingFrame\UI-TargetingFrame-Skull]]
 local hasSkull = {}
 local skullPool = setmetatable({}, { -- lazy creation of skull icons
 	__index = function(pool, frame)
-		local skull = frame.Level:GetParent():CreateTexture(nil, "OVERLAY")
+		local skull = frame.Level:GetParent():CreateTexture(nil)
+		skull:SetDrawLayer(frame.Level:GetDrawLayer())
 		skull:SetTexture(skullTexture)
 		skull:SetSize(16, 16)
 		skull:SetPoint("CENTER", frame.Level)
