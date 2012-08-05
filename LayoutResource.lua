@@ -38,11 +38,12 @@ local unpack = unpack
 local wipe = wipe
 --}}}
 
-function Module:ProfileChanged()
-	profile = Core.db.profile
+function Module:UpdateSettingsPointer(newSettings)
+	profile = newSettings
 end
 
 function Module:LoadSettings()
+	if not self:IsEnabled() then return end
 	local c = profile.resource
 	local _,class = UnitClass("player")
 	if class == "PALADIN" then
@@ -206,9 +207,6 @@ end
 
 function Module:OnInitialize()
 	self.OnInitialize = nil
-	self:ProfileChanged()
-	Core:RegisterForProfileChange(self, "ProfileChanged")
-
 	oUF = Core.oUF
 end
 

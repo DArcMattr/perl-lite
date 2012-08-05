@@ -256,23 +256,42 @@ local backdrop_black0 = {
 local grad1r, grad1g, grad1b, grad1a, grad2r, grad2g, grad2b, grad2a
 --}}} textures & backdrops
 
-local complainsInvalidStyleProperty = {
-	__index = function(self, key)
-		error("invalid style property: "..(self._style or "???").."."..tostring(key))
+function Module:UpdateSettingsPointer(newSettings)
+	profile = newSettings
+	if oUF then
+		for _,frame in next, oUF.units do
+			frame.settings = profile[frame.stylekey]
+		end
 	end
-}
-function Module:ProfileChanged()
-	profile = Core.db.profile
-	for styleName,_ in next, self.styleNames do
-		setmetatable(profile[styleName], complainsInvalidStyleProperty)
+end
+
+do -- function Module:LoadSettings()
+	local complainsInvalidStyleProperty = {
+		__index = function(self, key)
+			error("invalid style property: "..(self._style or "???").."."..tostring(key))
+		end
+	}
+	function Module:LoadSettings()
+		-- debugging aid for invalid properties like profile.player.laaaaaaaawll
+		for styleName,_ in next, self.styleNames do
+			setmetatable(profile[styleName], complainsInvalidStyleProperty)
+		end
+		-- color upvalues
+		do
+			local color = profile.color
+			local s,e = color.gradientStart, color.gradientEnd
+			grad1r, grad1g, grad1b, grad1a = s[1]/255, s[2]/255, s[3]/255, s[4]/255
+			grad2r, grad2g, grad2b, grad2a = e[1]/255, e[2]/255, e[3]/255, e[4]/255
+		end
+		-- the frames themselves
+		self:EnableOrDisableFrame("player")
+		self:EnableOrDisableFrame("pet")
+		self:EnableOrDisableFrame("target")
+		self:EnableOrDisableFrame("targettarget")
+		self:EnableOrDisableFrame("focus")
+		self:EnableOrDisableFrame("focustarget")
+		self:EnableOrDisableFrame("party")
 	end
-	do -- color upvalues
-		local color = profile.color
-		local s,e = color.gradientStart, color.gradientEnd
-		grad1r, grad1g, grad1b, grad1a = s[1]/255, s[2]/255, s[3]/255, s[4]/255
-		grad2r, grad2g, grad2b, grad2a = e[1]/255, e[2]/255, e[3]/255, e[4]/255
-	end
-	self:LayoutAll()
 end
 
 local menu = function(self)
@@ -1397,16 +1416,9 @@ local Shared = function(self, unit, isSingle)
 	self.PostUpdate = PostUpdate
 
 	self.settings = profile[unit] or profile.party
+	self.stylekey = self.settings._style
 	self.Layout = Layout
 	self:Layout(true)
-end
-
-function Module:LayoutAll()
-	if oUF then
-		for i = 1,#oUF.objects do
-			oUF.objects[i]:Layout()
-		end
-	end
 end
 
 function Module:PLAYER_FLAGS_CHANGED(event, unit)
@@ -1473,6 +1485,16 @@ function Module:EnableOrDisableFrame(unit)
 					--]=]
 				)
 				self.partyHeader = frame
+				frame.Disable = function(self)
+					for i = 1,#self do
+						self[i]:Disable()
+					end
+				end
+				frame.Enable = function(self)
+					for i = 1,#self do
+						self[i]:Enable()
+					end
+				end
 				frame.Layout = function(self)
 					for i = 1,#self do
 						self[i]:Layout()
@@ -1502,22 +1524,13 @@ end
 
 function Module:OnInitialize()
 	self.OnInitialize = nil
-	self:ProfileChanged()
-	Core:RegisterForProfileChange(self, "ProfileChanged")
-
 	self:InitOUFSettings()
 	oUF:RegisterStyle(_addonName, Shared)
 end
 
 function Module:OnEnable()
 	self:RegisterEvent("PLAYER_FLAGS_CHANGED")
-	self:EnableOrDisableFrame("player")
-	self:EnableOrDisableFrame("pet")
-	self:EnableOrDisableFrame("target")
-	self:EnableOrDisableFrame("targettarget")
-	self:EnableOrDisableFrame("focus")
-	self:EnableOrDisableFrame("focustarget")
-	self:EnableOrDisableFrame("party")
+	self:LoadSettings()
 end
 
 function Module:OnDisable()

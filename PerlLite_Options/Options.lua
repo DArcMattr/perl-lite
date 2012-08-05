@@ -26,8 +26,8 @@ local math_round = math.round
 local select = select
 --}}}
 
-function Module:ProfileChanged()
-	profile = Core.db.profile
+function Module:UpdateSettingsPointer(newSettings)
+	profile = newSettings
 end
 
 function Module:OpenOptions()
@@ -504,8 +504,7 @@ end --}}}
 
 function Module:OnInitialize()
 	self.OnInitialize = nil
-	self:ProfileChanged()
-	Core:RegisterForProfileChange(self, "ProfileChanged")
+	self:UpdateSettingsPointer(Core.db.profile)
 
 	local _, _coreAddonTitle = GetAddOnInfo(_coreAddonName)
 	local options = {
@@ -546,7 +545,7 @@ function Module:OnInitialize()
 				set = function(info, val)
 					if val == falseStr then val = false end
 					profile.color.gradient = val
-					Core.Layout:ProfileChanged()
+					Core.Layout:LoadSettings()
 				end,
 			},
 			gradientStart = {
@@ -568,7 +567,7 @@ function Module:OnInitialize()
 				set = function(info, r, g, b, a)
 					local gc = profile.color[info[#info]]
 					gc[1],gc[2],gc[3],gc[4] = normalize255(r), normalize255(g), normalize255(b), normalize255(a)
-					Core.Layout:ProfileChanged()
+					Core.Layout:LoadSettings()
 				end,
 				disabled = function(info)
 					return not profile.color.gradient
@@ -593,7 +592,7 @@ function Module:OnInitialize()
 				set = function(info, r, g, b, a)
 					local gc = profile.color[info[#info]]
 					gc[1],gc[2],gc[3],gc[4] = normalize255(r), normalize255(g), normalize255(b), normalize255(a)
-					Core.Layout:ProfileChanged()
+					Core.Layout:LoadSettings()
 				end,
 				disabled = function(info)
 					return not profile.color.gradient
@@ -608,7 +607,7 @@ function Module:OnInitialize()
 					local r,g,b,a = x[1],x[2],x[3],x[4]
 					x[1],x[2],x[3],x[4] = y[1],y[2],y[3],y[4]
 					y[1],y[2],y[3],y[4] = r,g,b,a
-					Core.Layout:ProfileChanged()
+					Core.Layout:LoadSettings()
 				end,
 				disabled = function(info)
 					return not profile.color.gradient

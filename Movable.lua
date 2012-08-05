@@ -100,9 +100,18 @@ do
 	end
 end --}}}
 
-function Module:ProfileChanged()
-	profile = Core.db.profile
-	-- TODO: LibWin is supposed to need help here.
+function Module:UpdateSettingsPointer(newSettings)
+	profile = newSettings
+	-- We give LibWin references to bits of profile for it to save positions in. Update them.
+	for name,object in next, configObjects do
+		LibWin.RegisterConfig(object, profile[name], LibWin_names)
+	end
+end
+
+function Module:LoadSettings()
+	for _,object in next, configObjects do
+		LibWin.RestorePosition(object)
+	end
 end
 
 function Module:RestorePosition(configName)
@@ -154,8 +163,6 @@ end
 
 function Module:OnInitialize()
 	self.OnInitialize = nil
-	self:ProfileChanged()
-	Core:RegisterForProfileChange(self, "ProfileChanged")
 end
 
 function Module:OnEnable()
