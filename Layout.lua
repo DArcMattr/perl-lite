@@ -74,7 +74,6 @@ do -- styles
 --]]
 local basicStyle = {
 	enabled = true,
-	scale = 1,
 	alpha = 216,
 	nestedAlpha = true,
 	rangeAlphaCoef = false,
