@@ -495,7 +495,7 @@ local PortraitPostUpdate3D = function(self, unit)
 	end
 end
 
-local HealPredictionOverride = function (self, event, unit)
+local HealPredictionOverride = function(self, event, unit)
 	if self.unit ~= unit then return end
 	local hp = self.HealPrediction
 	local incoming = UnitGetIncomingHeals(unit) or 0
