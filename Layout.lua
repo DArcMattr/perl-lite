@@ -1002,7 +1002,7 @@ local function LayoutCastbar(self, c, initial)
 		if not Castbar then
 			self.Castbar = CreateFrame( "StatusBar", nil, self.NameFrame )
 			Castbar = self.Castbar
-			Castbar:SetFrameLevel(self.NameFrame:GetFrameLevel()+1)
+			Castbar:SetFrameLevel(self.NameFrame:GetFrameLevel())
 			Castbar:SetBackdrop( {
 				bgFile = [[Interface\ChatFrame\ChatFrameBackground]], tile = true, tileSize = 32,
 				insets = {left = 0, right = 0, top = 0, bottom = 0},
@@ -1056,11 +1056,45 @@ local function LayoutCastbar(self, c, initial)
 			Castbar.Shield = nil
 		end
 
-		if ( self.unit == "player" ) then
+		if ( u == "player" ) then
 			Castbar.SafeZone:SetTexture(1,0,0,.5)
 		else
 			Castbar.SafeZone = nil
 		end
+
+		local CastingBegins = function( self, u )
+			if not self then return end
+			local frame = oUF.units[u]
+			if not frame or frame.unit ~= u then return end
+
+			frame.Name:Hide()
+			if frame.PvP then
+				frame.PvP:Hide()
+				if frame.PvPTimer then
+					frame.PvPTimer:Hide()
+				end
+			end
+		end
+
+		local CastingFinished = function( self, u )
+			if not self then return end
+			local frame = oUF.units[u]
+			if not frame or frame.unit ~= u then return end
+
+			frame.Name:Show()
+			if frame.PvP then
+				frame.PvP:Show()
+				if frame.PvPTimer then
+					frame.PvPTimer:Show()
+				end
+			end
+		end
+
+		Castbar.PostCastStart = CastingBegins
+		Castbar.PostChannelStart = CastingBegins
+
+		Castbar.PostCastStop = CastingFinished
+		Castbar.PostChannelStop = CastingFinished
 	elseif self.Castbar then
 		self:DisableElement("Castbar")
 		self.Castbar:Hide()
