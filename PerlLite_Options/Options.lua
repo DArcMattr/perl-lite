@@ -62,11 +62,6 @@ do
 	end
 end
 
-local function generic_disabled_castbar(info)
-	local style = info[#info-1]
-	return not profile[style].castbar
-end
-
 local function generic_disabled_style(info)
 	if #info == 2 then
 		local setting, style = info[#info], info[#info-1]
@@ -107,6 +102,12 @@ end
 local function generic_set_style_or_false(info, val)
 	if val == falseStr then val = false end
 	return generic_set_style(info, val)
+end
+
+local function generic_disabled_castbar(info)
+	if generic_disabled_style(info) then return true end
+	local style = info[#info-1]
+	return not profile[style].castbar
 end
 
 local function generic_disabled_resource(info)
