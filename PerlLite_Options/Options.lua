@@ -357,11 +357,21 @@ do --{{{ Module:MakeSectionArgs()
 		name = "Stats Top Padding",
 		min = -10, max = 10, step = 1,
 	}
+	-- statTags = true,
+	local statTags = { order = nextOrder(),
+		type = "toggle",
+		name = "Percents",
+	}
 	-- statTagWSpace = 35,
 	local statTagWSpace = { order = nextOrder(),
 		type = "range",
 		name = "Stat Tag Space",
 		min = 0, max = 80, step = 1,
+		disabled = function(info)
+			if generic_disabled_style(info) then return true end
+			local style = info[#info-1]
+			return not profile[style].statTags
+		end,
 	}
 	--[[
 	-- statTagW = 50,
@@ -466,6 +476,7 @@ do --{{{ Module:MakeSectionArgs()
 	section.nameH = nameH
 	section.statsW = statsW
 	section.statsTopPadding = statsTopPadding
+	section.statTags = statTags
 	section.statTagWSpace = statTagWSpace
 	-- section.statTagW = statTagW
 	-- section.statTagH = statTagH

@@ -126,6 +126,7 @@ local basicStyle = {
 	nameLeft = false,
 	statsW = 160,
 	statsTopPadding = -2,
+	statTags = true,
 	statTagWSpace = 35,
 	statTagW = 50,
 	statTagH = 12,
@@ -165,6 +166,7 @@ local stylePrototypes = {
 		nameFontSize = 10,
 		nameLeft = true,
 		statsW = 80,
+		statTags = false,
 		healthH = 14,
 		healthFontSize = 10,
 		powerFormat = "val/max full",
@@ -402,10 +404,7 @@ local HealthOverride = function(self, event, unit, powerType)
 	health:SetValue(disconnected and maxVal or val) -- fill to maxVal when disconnected
 	health.disconnected = disconnected
 
-	-- health text
-	health.text:formatValMax(val, maxVal)
-
-	-- health tag
+	-- health text & tag
 	local tag
 	if disconnected then
 		tag = "Offline"
@@ -418,12 +417,22 @@ local HealthOverride = function(self, event, unit, powerType)
 	elseif UnitIsAFK(unit) then
 		tag = "Away"
 	end
-	if tag then
-		health.tag:SetText(tag)
-	elseif maxVal ~= 0 then
-		health.tag:SetFormattedText("%d%%", (100 * val / maxVal))
+	if health.tag then
+		-- text & tag
+		health.text:formatValMax(val, maxVal)
+		if tag then
+			health.tag:SetText(tag)
+		elseif maxVal ~= 0 then
+			health.tag:SetFormattedText("%d%%", (100 * val / maxVal))
+		else
+			health.tag:SetText("")
+		end
+	elseif tag then
+		-- tag overrides text
+		health.text:SetText(tag)
 	else
-		health.tag:SetText("")
+		-- text only
+		health.text:formatValMax(val, maxVal)
 	end
 
 	-- health color
@@ -488,12 +497,14 @@ local PowerOverride = function(self, event, unit)
 	-- text & tag
 	if maxVal == 0 then
 		power.text:Hide()
-		power.tag:Hide()
+		if power.tag then power.tag:Hide() end
 	else
 		power.text:formatValMax(val, maxVal)
-		power.tag:SetFormattedText("%d%%", (100 * val / maxVal))
 		power.text:Show()
-		power.tag:Show()
+		if power.tag then
+			power.tag:SetFormattedText("%d%%", (100 * val / maxVal))
+			power.tag:Show()
+		end
 	end
 
 	-- bar color
@@ -573,6 +584,14 @@ local function CreateFrameSameLevel(frameType, name, parent, template)
 	return newf
 end
 
+local function MakeStatusBarTag(bar)
+	local tag = bar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	tag:SetPoint("LEFT", bar, "RIGHT", 0, 1)
+	tag:SetJustifyH("LEFT")
+	tag:SetTextColor(1, 1, 1)
+	return tag
+end
+
 local function CreateStatusBar(parent)
 	local bar = CreateFrameSameLevel("StatusBar", nil, parent)
 
@@ -589,13 +608,6 @@ local function CreateStatusBar(parent)
 	text:SetPoint("BOTTOMRIGHT", bar, 0, 1)
 	text:SetJustifyH("CENTER")
 	text:SetTextColor(1, 1, 1)
-
-	-- tag
-	local tag = bar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	bar.tag = tag
-	tag:SetPoint("LEFT", bar, "RIGHT", 0, 1)
-	tag:SetJustifyH("LEFT")
-	tag:SetTextColor(1, 1, 1)
 
 	return bar
 end
@@ -681,7 +693,6 @@ local function DoStatsFrame(unitFrame, unit, isSingle)
 	Health:SetPoint("TOP", StatsFrame, 0, -5)
 	Health:SetPoint("LEFT", StatsFrame, 5, 0)
 
-	-- I don't understand this oUF stuff yet
 	Health.frequentUpdates = true
 	Health.colorSmooth = true
 	Health.Override = HealthOverride
@@ -967,19 +978,37 @@ local function LayoutNameAndStats(self, c, initial)
 	self.StatsFrame:ClearAllPoints()
 	self.StatsFrame:SetSize(c.statsW, c.healthH + (self.Power:IsShown() and c.powerH or 0) + 10)
 
+	local Health, Power = self.Health, self.Power
 	UpdateBarTextures(self.Health)
-	self.Health.text.formatValMax = Module.valMaxFormatters[c.healthFormat]
-	self.Health.text:SetFont(GameFontNormal:GetFont(), c.healthFontSize)
-	self.Health.tag:SetFont(GameFontNormal:GetFont(), c.tagFontSize)
-	self.Health:SetHeight(c.healthH)
-	self.Health.tag:SetSize(c.statTagW, c.statTagH)
+	Health.text.formatValMax = Module.valMaxFormatters[c.healthFormat]
+	Health.text:SetFont(GameFontNormal:GetFont(), c.healthFontSize)
+	Health:SetHeight(c.healthH)
+	UpdateBarTextures(Power)
+	Power.text.formatValMax = Module.valMaxFormatters[c.powerFormat]
+	Power.text:SetFont(GameFontNormal:GetFont(), c.powerFontSize)
 
-	UpdateBarTextures(self.Power)
-	self.Power.text.formatValMax = Module.valMaxFormatters[c.powerFormat]
-	self.Power.text:SetFont(GameFontNormal:GetFont(), c.powerFontSize)
-	self.Power.tag:SetFont(GameFontNormal:GetFont(), c.tagFontSize)
-	self.Power.tag:SetSize(c.statTagW, c.statTagH)
-	self.Health:SetPoint("RIGHT", self.StatsFrame, -(5 + c.statTagWSpace), 0)
+	local attachX = -5
+	if c.statTags then
+		if not Health.tag then
+			Health.tag = Health._tag or MakeStatusBarTag(Health)
+			Health.tag:Show()
+			Power.tag = Power._tag or MakeStatusBarTag(Power)
+			Power.tag:Show()
+		end
+		Health.tag:SetFont(GameFontNormal:GetFont(), c.tagFontSize)
+		Health.tag:SetSize(c.statTagW, c.statTagH)
+		Power.tag:SetFont(GameFontNormal:GetFont(), c.tagFontSize)
+		Power.tag:SetSize(c.statTagW, c.statTagH)
+		attachX = attachX - c.statTagWSpace
+	elseif Health.tag then
+		Health._tag = Health.tag
+		Health.tag:Hide()
+		Health.tag = nil
+		Power._tag = Power.tag
+		Power.tag:Hide()
+		Power.tag = nil
+	end
+	Health:SetPoint("RIGHT", self.StatsFrame, attachX, 0)
 end
 
 local function LayoutHealPrediction(self, c, initial)
