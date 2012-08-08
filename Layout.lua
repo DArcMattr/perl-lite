@@ -326,7 +326,7 @@ function Module:LoadSettings()
 end
 
 local menu = function(self)
-	local unit = self.unit -- self.unit:sub(1, -2)
+	local unit = self.unit:sub(1, -2)
 	local cunit = self.unit:gsub("^%l", strupper)
 
 	if cunit == "Vehicle" then
