@@ -698,11 +698,9 @@ local function attach(self, frame1name, point1, frame2name, point2, xOff, yOff, 
 	frame1:SetPoint(point1, frame2, point2, xOff, yOff)
 end
 
-local function DoNameFrame(unitFrame, unit, isSingle)
+local function DoNameFrame(unitFrame)
 	-- NameFrame
-	local NameFrame = CreateBorderedChildFrame(unitFrame)
-	unitFrame.NameFrame = NameFrame
-
+	local NameFrame = unitFrame.NameFrame
 	local Name = NameFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	unitFrame.Name = Name
 	Name:SetPoint("BOTTOMRIGHT", NameFrame, 0, 1)
@@ -710,7 +708,7 @@ local function DoNameFrame(unitFrame, unit, isSingle)
 	unitFrame:Tag(Name, "[name]")
 end
 
-local function DoStatsFrame(unitFrame, unit, isSingle)
+local function DoStatsFrame(unitFrame)
 	-- StatsFrame
 	local StatsFrame = CreateBorderedChildFrame(unitFrame)
 	unitFrame.StatsFrame = StatsFrame
@@ -734,13 +732,13 @@ local function DoStatsFrame(unitFrame, unit, isSingle)
 	Power.Override = PowerOverride
 end
 
-local function LayoutPvPIcon(self, c, initial)
+local function LayoutPvPIcon(self, c)
 	if c.pvpIcon then
 		if not self.PvP then
 			self.PvP = self.NameFrame:CreateTexture(nil, "OVERLAY")
 			self.PvP:SetTexCoord(0, 42/64, 0, 42/64) -- icon is 42x42 in a 64x64 file
 		end
-		if not initial then self:EnableElement("PvP") end
+		self:EnableElement("PvP")
 		self.PvP:SetSize(c.pvpIconSize, c.pvpIconSize)
 		self.PvP:SetPoint("CENTER", self.NameFrame, c.pvpIcon, c.pvpIconX, c.pvpIconY)
 	elseif self.PvP then
@@ -753,7 +751,7 @@ local function LayoutPvPIcon(self, c, initial)
 			self.PvPTimer = self.NameFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 			self.PvPTimer:SetTextColor(1, 1, 1)
 		end
-		if not initial then self:EnableElement("PvPTimer") end
+		self:EnableElement("PvPTimer")
 		self.PvPTimer:SetPoint("CENTER", self.PvP, "CENTER", 0, 1)
 	elseif self.PvPTimer then
 		self:DisableElement("PvPTimer")
@@ -761,12 +759,12 @@ local function LayoutPvPIcon(self, c, initial)
 	end
 end
 
-local function LayoutRaidIcon(self, c, initial)
+local function LayoutRaidIcon(self, c)
 	if c.raidIcon then
 		if not self.RaidIcon then
 			self.RaidIcon = self.NameFrame:CreateTexture(nil, "OVERLAY")
 		end
-		if not initial then self:EnableElement("RaidIcon") end
+		self:EnableElement("RaidIcon")
 		self.RaidIcon:SetSize(c.raidIconSize, c.raidIconSize)
 		self.RaidIcon:SetPoint("CENTER", self.NameFrame, c.raidIcon, c.raidIconX, c.raidIconY)
 	elseif self.RaidIcon then
@@ -775,12 +773,12 @@ local function LayoutRaidIcon(self, c, initial)
 	end
 end
 
-local function LayoutLeaderIcon(self, c, initial)
+local function LayoutLeaderIcon(self, c)
 	if c.leaderIcon then
 		if not self.Leader then
 			self.Leader = self.NameFrame:CreateTexture(nil, "OVERLAY")
 		end
-		if not initial then self:EnableElement("Leader") end
+		self:EnableElement("Leader")
 		self.Leader:SetSize(c.leaderIconSize, c.leaderIconSize)
 		self.Leader:SetPoint("CENTER", self.NameFrame, c.leaderIcon, c.leaderIconX, c.leaderIconY)
 	elseif self.Leader then
@@ -789,12 +787,12 @@ local function LayoutLeaderIcon(self, c, initial)
 	end
 end
 
-local function LayoutMasterLooterIcon(self, c, initial)
+local function LayoutMasterLooterIcon(self, c)
 	if c.masterLooterIcon then
 		if not self.MasterLooter then
 			self.MasterLooter = self.NameFrame:CreateTexture(nil, "OVERLAY")
 		end
-		if not initial then self:EnableElement("MasterLooter") end
+		self:EnableElement("MasterLooter")
 		self.MasterLooter:SetSize(c.masterLooterIconSize, c.masterLooterIconSize)
 		self.MasterLooter:SetPoint("CENTER", self.NameFrame, c.masterLooterIcon, c.masterLooterIconX, c.masterLooterIconY)
 	elseif self.MasterLooter then
@@ -803,7 +801,7 @@ local function LayoutMasterLooterIcon(self, c, initial)
 	end
 end
 
-local function LayoutCombatIcon(self, c, initial)
+local function LayoutCombatIcon(self, c)
 	if c.combatIcon then
 		if not self.Combat then
 			self.Combat = self.NameFrame:CreateTexture(nil, "OVERLAY")
@@ -815,8 +813,8 @@ local function LayoutCombatIcon(self, c, initial)
 			self.Resting:SetTexCoord(0/64, 32/64, 0/64, 32/64)
 			self.Resting.Override = RestingOverride
 		end
-		if not initial then self:EnableElement("Combat") end
-		if not initial then self:EnableElement("Resting") end
+		self:EnableElement("Combat")
+		self:EnableElement("Resting")
 		self.Combat:SetSize(c.combatIconSize, c.combatIconSize)
 		self.Combat:SetPoint("CENTER", self.NameFrame, c.combatIcon, c.combatIconX, c.combatIconY)
 		self.Resting:SetSize(c.combatIconSize, c.combatIconSize)
@@ -829,18 +827,18 @@ local function LayoutCombatIcon(self, c, initial)
 	end
 end
 
-local function LayoutRange(self, c, initial)
+local function LayoutRange(self, c)
 	if c.rangeAlphaCoef then
 		self.Range = self.Range or {}
 		self.Range.insideAlpha = c.alpha / 255
 		self.Range.outsideAlpha = floor(c.alpha * c.rangeAlphaCoef + .5) / 255
-		if not initial then self:EnableElement("Range") end
+		self:EnableElement("Range")
 	elseif self.Range then
 		self:DisableElement("Range")
 	end
 end
 
-local function LayoutPortrait(self, c, initial)
+local function LayoutPortrait(self, c)
 	if c.portrait and not self.PortraitFrame then
 		self.PortraitFrame = CreateBorderedChildFrame(self, backdrop_black0)
 	end
@@ -867,7 +865,7 @@ local function LayoutPortrait(self, c, initial)
 					local _2d = self.PortraitFrame._2d or self.PortraitFrame:CreateTexture(nil, "ARTWORK")
 					self.Portrait = _2d
 				end
-				if not initial then self:EnableElement("Portrait") end
+				self:EnableElement("Portrait")
 				self.Portrait:Show()
 			end
 		end
@@ -884,7 +882,7 @@ local function LayoutPortrait(self, c, initial)
 	end
 end
 
-local function LayoutLevel(self, c, initial)
+local function LayoutLevel(self, c)
 	local specialLevelFrame = c.embedLevelAndClassIcon and (c.level or c.classIcon) and not c.portrait
 	-- LevelFrame
 	if c.level or specialLevelFrame then
@@ -907,7 +905,7 @@ local function LayoutLevel(self, c, initial)
 		if not self.Level then
 			self.Level = self.LevelFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
 		end
-		if not initial then self:EnableElement("Level") end
+		self:EnableElement("Level")
 		self.Level:ClearAllPoints()
 		if specialLevelFrame then
 			if c.classIcon then
@@ -924,7 +922,7 @@ local function LayoutLevel(self, c, initial)
 	end
 end
 
-local function LayoutClassIcon(self, c, initial)
+local function LayoutClassIcon(self, c)
 	local specialLevelFrame = c.embedLevelAndClassIcon and (c.level or c.classIcon) and not c.portrait
 	if c.classIcon then
 		if not self.ClassIcon then
@@ -943,7 +941,7 @@ local function LayoutClassIcon(self, c, initial)
 			self.ClassIcon:SetTexture(classIconsBg)
 			attach(self, "ClassIcon", "BOTTOMRIGHT", "corner", "BOTTOMLEFT", -1, 2, 2)
 		end
-		if not initial then self:EnableElement("ClassIcon") end
+		self:EnableElement("ClassIcon")
 		self.ClassIcon:Show()
 	elseif self.ClassIcon and self.ClassIcon:IsShown() then
 		self.ClassIcon:Hide()
@@ -952,7 +950,7 @@ local function LayoutClassIcon(self, c, initial)
 	end
 end
 
-local function LayoutEliteFrame(self, c, initial)
+local function LayoutEliteFrame(self, c)
 	if c.eliteType then
 		if not self.EliteFrame then
 			self.EliteFrame = CreateBorderedChildFrame(self)
@@ -970,7 +968,7 @@ local function LayoutEliteFrame(self, c, initial)
 	end
 end
 
-local function LayoutRaceFrame(self, c, initial)
+local function LayoutRaceFrame(self, c)
 	if c.npcRace then
 		if not self.RaceFrame then
 			self.RaceFrame = CreateBorderedChildFrame(self)
@@ -989,7 +987,7 @@ local function LayoutRaceFrame(self, c, initial)
 	end
 end
 
-local function LayoutNameAndStats(self, c, initial)
+local function LayoutNameAndStats(self, c)
 	UpdateFrameGradient(self.NameFrame)
 	self.NameFrame:ClearAllPoints()
 	self.NameFrame:SetSize(c.nameW, c.nameH)
@@ -1039,13 +1037,13 @@ local function LayoutNameAndStats(self, c, initial)
 	Health:SetPoint("RIGHT", self.StatsFrame, attachX, 0)
 end
 
-local function LayoutHealPrediction(self, c, initial)
+local function LayoutHealPrediction(self, c)
 	if c.healPrediction then
 		if not self.HealPrediction then
 			self.HealPrediction = CreateFrameSameLevel("StatusBar", nil, self.StatsFrame)
 			self.HealPrediction.Override = HealPredictionOverride
 		end
-		if not initial then self:EnableElement("HealPrediction") end
+		self:EnableElement("HealPrediction")
 		self.HealPrediction:SetStatusBarTexture(profile.barTexture)
 		self.HealPrediction:GetStatusBarTexture():SetDrawLayer("ARTWORK", -1)
 		self.HealPrediction:SetStatusBarColor(0, 1, 1)
@@ -1057,12 +1055,12 @@ local function LayoutHealPrediction(self, c, initial)
 	end
 end
 
-local function LayoutCombatFeedback(self, c, initial)
+local function LayoutCombatFeedback(self, c)
 	if c.combatFeedback then
 		if not self.SimpleCombatFeedback then
 			self.SimpleCombatFeedback = self:CreateFontString(nil, "OVERLAY", "NumberFontNormalHuge")
 		end
-		if not initial then self:EnableElement("SimpleCombatFeedback") end
+		self:EnableElement("SimpleCombatFeedback")
 		self.SimpleCombatFeedback:ClearAllPoints()
 		self.SimpleCombatFeedback:SetPoint("CENTER", c.portrait and self.PortraitFrame or self.NameFrame)
 	elseif self.SimpleCombatFeedback then
@@ -1071,18 +1069,18 @@ local function LayoutCombatFeedback(self, c, initial)
 	end
 end
 
-local function LayoutSounds(self, c, initial)
+local function LayoutSounds(self, c)
 	if c.sounds then
 		self.SoundOnSelect = self.SoundOnSelect or {}
 		self.SoundOnSelect.channel = c.sounds
-		if not initial then self:EnableElement("SoundOnSelect") end
+		self:EnableElement("SoundOnSelect")
 	elseif self.SoundOnSelect then
 		self:DisableElement("SoundOnSelect")
 	end
 	if c.pvpSound then
 		self.PvPSound = self.PvPSound or {}
 		self.PvPSound.channel = c.pvpSound
-		if not initial then self:EnableElement("PvPSound") end
+		self:EnableElement("PvPSound")
 	elseif self.PvPSound then
 		self:DisableElement("PvPSound")
 	end
@@ -1204,7 +1202,7 @@ local LayoutCastbar; do
 		end
 	end
 
-	function LayoutCastbar(self, c, initial)
+	function LayoutCastbar(self, c)
 		if c.castbar then
 			local Castbar = self.Castbar
 			if not Castbar then
@@ -1246,7 +1244,7 @@ local LayoutCastbar; do
 				Flash.border:SetDrawLayer("OVERLAY", 2)
 				Flash.border:SetBlendMode("ADD")
 			end
-			if not initial then self:EnableElement("Castbar") end
+			self:EnableElement("Castbar")
 
 			local ins = self.NameFrame:GetBackdrop().insets
 			Castbar:SetPoint("TOPLEFT", ins.left, -ins.top)
@@ -1336,11 +1334,12 @@ end
 local function sizeForLayout(c)
 	local extraWidth = 0
 	local statsWidth = c.statsW
-	if c.portrait then
+	local hasPortrait = c.portrait
+	if hasPortrait then
 		extraWidth = extraWidth + (c.portraitW + c.portraitPadding)
 	end
 	if c.embedLevelAndClassIcon and (c.level or c.classIcon) then
-		if c.portrait then
+		if hasPortrait then
 			-- extra space for LevelFrame outside the portrait
 			extraWidth = extraWidth + (27 - 2)
 		else
@@ -1350,14 +1349,14 @@ local function sizeForLayout(c)
 	end
 	local width = extraWidth + max(c.nameW, statsWidth)
 
-	local portraitHeight = c.portrait and c.portraitH or 0
+	local portraitHeight = hasPortrait and c.portraitH or 0
 	local nameStatsHeight = c.nameH + (c.healthH + c.powerH + 10) + c.statsTopPadding
 	local height = max(portraitHeight, nameStatsHeight)
 
 	return width, height
 end
 
-local Layout = function(self, initial)
+local Layout = function(self)
 	local c = self.settings
 
 	-- Alphas. XPerl is weird about this. Nested frames get an alpha that combines with the main one, with some exceptions.
@@ -1371,9 +1370,9 @@ local Layout = function(self, initial)
 		self.StatsFrame:SetAlpha(1)
 	end
 
-	LayoutNameAndStats(self, c, initial)
-	LayoutPortrait(self, c, initial)
-	LayoutLevel(self, c, initial)
+	LayoutNameAndStats(self, c)
+	LayoutPortrait(self, c)
+	LayoutLevel(self, c)
 
 	-- 4 basic layouts.
 	-- sizeForLayout() needs to match the width/height requirements of what's done here.
@@ -1417,19 +1416,19 @@ local Layout = function(self, initial)
 	end
 	self:SetSize(sizeForLayout(c))
 
-	LayoutHealPrediction(self, c, initial)
-	LayoutCombatFeedback(self, c, initial)
-	LayoutRange(self, c, initial)
-	LayoutPvPIcon(self, c, initial)
-	LayoutRaidIcon(self, c, initial)
-	LayoutLeaderIcon(self, c, initial)
-	LayoutMasterLooterIcon(self, c, initial)
-	LayoutCombatIcon(self, c, initial)
-	LayoutClassIcon(self, c, initial)
-	LayoutEliteFrame(self, c, initial)
-	LayoutRaceFrame(self, c, initial)
-	LayoutSounds(self, c, initial)
-	LayoutCastbar(self, c, initial)
+	LayoutHealPrediction(self, c)
+	LayoutCombatFeedback(self, c)
+	LayoutRange(self, c)
+	LayoutPvPIcon(self, c)
+	LayoutRaidIcon(self, c)
+	LayoutLeaderIcon(self, c)
+	LayoutMasterLooterIcon(self, c)
+	LayoutCombatIcon(self, c)
+	LayoutClassIcon(self, c)
+	LayoutEliteFrame(self, c)
+	LayoutRaceFrame(self, c)
+	LayoutSounds(self, c)
+	LayoutCastbar(self, c)
 end
 
 local eliteTypeDisplay = {
@@ -1486,22 +1485,39 @@ local PostUpdate = function(self, event)
 	end
 end
 
-local Shared = function(self, unit, isSingle)
+local function LayoutOnce_OnUpdate(nameFrame)
+	nameFrame:SetScript("OnUpdate", nil)
+	local self = nameFrame:GetParent()
+
 	self.menu = menu
 	self:SetScript("OnEnter", UnitFrame_OnEnter)
 	self:SetScript("OnLeave", UnitFrame_OnLeave)
 	self:RegisterForClicks("AnyUp")
 
-	DoNameFrame(self, unit, isSingle)
-	DoStatsFrame(self, unit, isSingle)
+	DoNameFrame(self)
+	DoStatsFrame(self)
+	self:EnableElement("Health")
+	self:EnableElement("Power")
 
 	self.colors = Module.colors
 	self.PostUpdate = PostUpdate
+	self.Layout = Layout
+	self:Layout()
+	self:UpdateAllElements()
+end
 
+local function noop() end
+local Shared = function(self, unit, isSingle)
 	self.settings = profile[unit] or profile.party
 	self.stylekey = self.settings._style
-	self.Layout = Layout
-	self:Layout(true)
+	self.Layout = noop
+
+	-- Postpone as much initialization as possible. But we need the size, and a single child for OnUpdate.
+	if isSingle then
+		self:SetSize(sizeForLayout(self.settings))
+	end
+	self.NameFrame = CreateBorderedChildFrame(self)
+	self.NameFrame:SetScript("OnUpdate", LayoutOnce_OnUpdate)
 end
 
 function Module:PLAYER_FLAGS_CHANGED(event, unit)
