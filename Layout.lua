@@ -1319,7 +1319,6 @@ local Layout = function(self, initial)
 		self.StatsFrame:SetAlpha(1)
 	end
 
-	self.corner = false -- to make sure nothing tries to use until it's set
 	LayoutNameAndStats(self, c, initial)
 	LayoutPortrait(self, c, initial)
 	LayoutLevel(self, c, initial)
@@ -1422,12 +1421,12 @@ local PostUpdate = function(self, event)
 			self.RaceFrame.text:SetText(race)
 			self.RaceFrame:SetWidth(self.RaceFrame.text:GetStringWidth() + 10)
 			self.RaceFrame:ClearAllPoints()
-			if not c.portrait then
+			if self.corner == self.StatsFrame then
 				attach(self, "RaceFrame", "TOPRIGHT", "corner", "BOTTOMLEFT", 0, 2)
-			elseif self.RaceFrame:GetWidth() > self.PortraitFrame:GetWidth() then
-				attach(self, "RaceFrame", "TOPRIGHT", "PortraitFrame", "BOTTOMRIGHT", 0, 2)
+			elseif self.RaceFrame:GetWidth() > self.corner:GetWidth() then
+				attach(self, "RaceFrame", "TOPRIGHT", "corner", "BOTTOMRIGHT", 0, 2)
 			else
-				attach(self, "RaceFrame", "TOPLEFT", "PortraitFrame", "BOTTOMLEFT", 0, 2)
+				attach(self, "RaceFrame", "TOPLEFT", "corner", "BOTTOMLEFT", 0, 2)
 			end
 			self.RaceFrame:Show()
 		end
