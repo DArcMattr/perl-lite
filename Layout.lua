@@ -1507,6 +1507,7 @@ function Module:EnableOrDisableFrame(unit)
 		if frame then
 			frame:Enable()
 			frame:Layout()
+			frame:UpdateAllElements()
 		else
 			oUF:SetActiveStyle(_addonName)
 			if unit == "party" then
