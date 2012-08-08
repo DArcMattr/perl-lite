@@ -1404,7 +1404,13 @@ local PostUpdate = function(self, event)
 			if c.classIcon then self.ClassIcon:Show() end
 			self.EliteFrame:Hide()
 		else
-			if c.classIcon then self.ClassIcon:Hide() end
+			if c.classIcon then
+				if c.embedLevelAndClassIcon and not c.portrait then
+					self.ClassIcon:Show()
+				else
+					self.ClassIcon:Hide()
+				end
+			end
 			local text = self.EliteFrame.text
 			local color = self.colors.elite[eliteType]
 			text:SetText(eliteTypeDisplay[eliteType])
