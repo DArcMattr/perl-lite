@@ -48,48 +48,6 @@ Addon.defaults = {
 			runes = true,
 			totems = true,
 		},
-		player = {
-			scale = 0.9,
-			attachPoint = "TOPLEFT",
-			attachX = 22,
-			attachY = -22,
-		},
-		pet = {
-			scale = 0.7,
-			attachPoint = "TOPLEFT",
-			attachX = 128,
-			attachY = -75,
-		},
-		target = {
-			scale = 0.8,
-			attachPoint = "TOP",
-			attachX = -177,
-			attachY = -22,
-		},
-		targettarget = {
-			scale = 0.7,
-			attachPoint = "TOP",
-			attachX = -15,
-			attachY = -22,
-		},
-		focus = {
-			scale = 0.8,
-			attachPoint = "LEFT",
-			attachX = 256,
-			attachY = 148,
-		},
-		focustarget = {
-			scale = 0.7,
-			attachPoint = "LEFT",
-			attachX = 450,
-			attachY = 151,
-		},
-		party = {
-			scale = 0.8,
-			attachPoint = "TOPLEFT",
-			attachX = 0,
-			attachY = -140,
-		},
 	}
 }
 
@@ -125,7 +83,6 @@ function Addon:OnInitialize()
 	self.db.RegisterCallback(self, "OnProfileChanged", "ProfileChanged")
 	self.db.RegisterCallback(self, "OnProfileCopied", "ProfileChanged")
 	self.db.RegisterCallback(self, "OnProfileReset", "ProfileChanged")
-	self.db.RegisterCallback(self, "OnProfileDeleted", "ProfileChanged")
 
 	do
 		local _, _addonTitle = GetAddOnInfo(_addonName)

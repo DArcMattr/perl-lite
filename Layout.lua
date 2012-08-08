@@ -53,6 +53,7 @@ local floor = floor
 local format = format
 local max = max
 local next = next
+local rawget = rawget
 local setmetatable = setmetatable
 local strmatch = strmatch
 local strupper = strupper
@@ -61,7 +62,7 @@ local unpack = unpack
 local wipe = wipe
 --}}}
 
-do -- styles
+local stylePrototypes; do -- styles
 --{{{ style data
 --[[
 	basicStyle
@@ -139,8 +140,12 @@ local basicStyle = {
 	powerFormat = "val/max",
 	portraitPadding = -3,
 }
-local stylePrototypes = {
+stylePrototypes = {
 	player = {
+		scale = 0.9,
+		attachPoint = "TOPLEFT",
+		attachX = 22,
+		attachY = -22,
 		nestedAlpha = false,
 		castTime = true,
 		castSafeZone = true,
@@ -155,6 +160,10 @@ local stylePrototypes = {
 		powerFormat = "val/max full",
 	},
 	pet = {
+		scale = 0.7,
+		attachPoint = "TOPLEFT",
+		attachX = 128,
+		attachY = -75,
 		nestedAlpha = false,
 		portrait = "3d",
 		portraitW = 50,
@@ -172,6 +181,10 @@ local stylePrototypes = {
 		powerFormat = "val/max full",
 	},
 	target = {
+		scale = 0.8,
+		attachPoint = "TOP",
+		attachX = -177,
+		attachY = -22,
 		sounds = "Master",
 		castbar = true,
 		portrait = "3d",
@@ -184,17 +197,33 @@ local stylePrototypes = {
 		masterLooterIcon = "TOP",
 	},
 	targettarget = {
+		scale = 0.7,
+		attachPoint = "TOP",
+		attachX = -15,
+		attachY = -22,
 		level = false,
 		classIcon = false,
 		raidIcon = "RIGHT",
 	},
 	focus = {
 		_inherits = "target",
+		scale = 0.8,
+		attachPoint = "LEFT",
+		attachX = 256,
+		attachY = 148,
 	},
 	focustarget = {
 		_inherits = "targettarget",
+		scale = 0.7,
+		attachPoint = "LEFT",
+		attachX = 450,
+		attachY = 151,
 	},
 	party = {
+		scale = 0.8,
+		attachPoint = "TOPLEFT",
+		attachX = 0,
+		attachY = -140,
 		rangeAlphaCoef = 0.5,
 		combatFeedback = true,
 		embedLevelAndClassIcon = true,
@@ -215,27 +244,19 @@ local stylePrototypes = {
 --}}} style data
 --{{{ style init
 do
-	local function shallowCopy(to, from)
-		for k,v in next, from do
-			to[k] = v
+	local complainsInvalidStyleProperty = {
+		__index = function(self, key)
+			error("invalid style property: "..(rawget(self, "_style") or "???").."."..tostring(key))
 		end
-	end
-	-- Copy style properties into the "defaults" tables.
+	}
+	setmetatable(basicStyle, complainsInvalidStyleProperty)
+	local indexesBasicStyle = { __index = basicStyle }
 	for k,proto in next, stylePrototypes do
-		local settings = Core.defaults.profile[k]
-		settings._style = k -- so a style knows its own name
-		shallowCopy(settings, basicStyle)
-		if proto._inherits then
-			shallowCopy(settings, stylePrototypes[proto._inherits])
-			settings._inherits = nil
-		end
-		shallowCopy(settings, proto)
+		proto._style = k -- so a style knows its own name
+		proto._indexme = { __index = proto }
+		local meta = proto._inherits and { __index=stylePrototypes[proto._inherits] } or indexesBasicStyle
+		setmetatable(proto, meta)
 	end
-	-- Drop the big style properites tables, but keep the names for code that wants to iterate on them.
-	for k,_ in next, stylePrototypes do
-		stylePrototypes[k] = k
-	end
-	Module.styleNames = stylePrototypes
 --}}} style init
 end
 end
@@ -261,6 +282,10 @@ local grad1r, grad1g, grad1b, grad1a, grad2r, grad2g, grad2b, grad2a
 
 function Module:UpdateSettingsPointer(newSettings)
 	profile = newSettings
+	for styleName,proto in next, stylePrototypes do
+		profile[styleName] = profile[styleName] or {}
+		setmetatable(profile[styleName], proto._indexme)
+	end
 	if oUF then
 		for _,frame in next, oUF.units do
 			frame.settings = profile[frame.stylekey]
@@ -268,33 +293,36 @@ function Module:UpdateSettingsPointer(newSettings)
 	end
 end
 
-do -- function Module:LoadSettings()
-	local complainsInvalidStyleProperty = {
-		__index = function(self, key)
-			error("invalid style property: "..(self._style or "???").."."..tostring(key))
+function Module:PruneSettings()
+	for styleName,proto in next, stylePrototypes do
+		local settings = profile[styleName]
+		setmetatable(settings, nil)
+		for k,v in next, settings do
+			if v == proto[k] then
+				settings[k] = nil
+			end
 		end
-	}
-	function Module:LoadSettings()
-		-- debugging aid for invalid properties like profile.player.laaaaaaaawll
-		for styleName,_ in next, self.styleNames do
-			setmetatable(profile[styleName], complainsInvalidStyleProperty)
+		if not next(settings) then
+			profile[styleName] = nil
 		end
-		-- color upvalues
-		do
-			local color = profile.color
-			local s,e = color.gradientStart, color.gradientEnd
-			grad1r, grad1g, grad1b, grad1a = s[1]/255, s[2]/255, s[3]/255, s[4]/255
-			grad2r, grad2g, grad2b, grad2a = e[1]/255, e[2]/255, e[3]/255, e[4]/255
-		end
-		-- the frames themselves
-		self:EnableOrDisableFrame("player")
-		self:EnableOrDisableFrame("pet")
-		self:EnableOrDisableFrame("target")
-		self:EnableOrDisableFrame("targettarget")
-		self:EnableOrDisableFrame("focus")
-		self:EnableOrDisableFrame("focustarget")
-		self:EnableOrDisableFrame("party")
 	end
+end
+
+function Module:LoadSettings()
+	do -- color upvalues
+		local color = profile.color
+		local s,e = color.gradientStart, color.gradientEnd
+		grad1r, grad1g, grad1b, grad1a = s[1]/255, s[2]/255, s[3]/255, s[4]/255
+		grad2r, grad2g, grad2b, grad2a = e[1]/255, e[2]/255, e[3]/255, e[4]/255
+	end
+	-- the frames themselves
+	self:EnableOrDisableFrame("player")
+	self:EnableOrDisableFrame("pet")
+	self:EnableOrDisableFrame("target")
+	self:EnableOrDisableFrame("targettarget")
+	self:EnableOrDisableFrame("focus")
+	self:EnableOrDisableFrame("focustarget")
+	self:EnableOrDisableFrame("party")
 end
 
 local menu = function(self)
@@ -1587,6 +1615,7 @@ end
 
 function Module:OnInitialize()
 	self.OnInitialize = nil
+	Core.db.RegisterCallback(self, "OnProfileShutdown", "PruneSettings")
 	self:InitOUFSettings()
 	oUF:RegisterStyle(_addonName, Shared)
 end
