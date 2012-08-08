@@ -1305,6 +1305,30 @@ local LayoutCastbar; do
 	end
 end
 
+local function sizeForLayout(c)
+	local extraWidth = 0
+	local statsWidth = c.statsW
+	if c.portrait then
+		extraWidth = extraWidth + (c.portraitW + c.portraitPadding)
+	end
+	if c.embedLevelAndClassIcon and (c.level or c.classIcon) then
+		if c.portrait then
+			-- extra space for LevelFrame outside the portrait
+			extraWidth = extraWidth + (27 - 2)
+		else
+			-- embedded level frame adds to statsWidth
+			statsWidth = statsWidth + (30 - 2)
+		end
+	end
+	local width = extraWidth + max(c.nameW, statsWidth)
+
+	local portraitHeight = c.portrait and c.portraitH or 0
+	local nameStatsHeight = c.nameH + (c.healthH + c.powerH + 10) + c.statsTopPadding
+	local height = max(portraitHeight, nameStatsHeight)
+
+	return width, height
+end
+
 local Layout = function(self, initial)
 	local c = self.settings
 
@@ -1324,8 +1348,7 @@ local Layout = function(self, initial)
 	LayoutLevel(self, c, initial)
 
 	-- 4 basic layouts.
-	local width
-	local height = max(c.portrait and c.portraitH or 0, c.nameH + (c.healthH + c.powerH + 10) + c.statsTopPadding)
+	-- sizeForLayout() needs to match the width/height requirements of what's done here.
 	if c.embedLevelAndClassIcon and (c.level or c.classIcon) then
 		if c.portrait then
 			-- "group" frame w/ portrait
@@ -1337,18 +1360,15 @@ local Layout = function(self, initial)
 			end
 			attach(self, "NameFrame", "TOPLEFT", "PortraitFrame", "TOPRIGHT", c.portraitPadding, 0)
 			attach(self, "StatsFrame", "TOPLEFT", "NameFrame", "BOTTOMLEFT", 0, -c.statsTopPadding)
-			width = 27 + c.portraitW - 2 + max(c.nameW, c.statsW) + c.portraitPadding
 			self.corner = self.PortraitFrame
 		else
 			-- "group" frame w/o portrait. This has the distinctive embedded level frame.
 			attach(self, "NameFrame", "TOPLEFT", nil, "TOPLEFT", 0, 0)
 			attach(self, "LevelFrame", "TOPLEFT", "NameFrame", "BOTTOMLEFT", 0, -c.statsTopPadding)
 			attach(self, "StatsFrame", "TOPLEFT", "LevelFrame", "TOPRIGHT", -2, 0)
-			width = max(c.nameW, 30 + c.statsW - 2)
 			self.corner = self.LevelFrame
 		end
 	else
-		width = max(c.nameW, c.statsW)
 		if c.portrait then
 			-- "standard" frame w/ portrait, like player & target.
 			attach(self, "PortraitFrame", "TOPLEFT", nil, "TOPLEFT", 0, 0)
@@ -1356,7 +1376,6 @@ local Layout = function(self, initial)
 			if c.level then
 				attach(self, "LevelFrame", "TOPRIGHT", "PortraitFrame", "TOPLEFT", 2, 0)
 			end
-			width = width + c.portraitW + c.portraitPadding
 			self.corner = self.PortraitFrame
 		else
 			-- "standard" frame w/o portrait, like the default targettarget
@@ -1368,7 +1387,7 @@ local Layout = function(self, initial)
 		end
 		attach(self, "StatsFrame", "TOPLEFT", "NameFrame", "BOTTOMLEFT", 0, -c.statsTopPadding)
 	end
-	self:SetSize(width, height)
+	self:SetSize(sizeForLayout(c))
 
 	LayoutHealPrediction(self, c, initial)
 	LayoutCombatFeedback(self, c, initial)
