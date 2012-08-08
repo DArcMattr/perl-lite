@@ -1530,15 +1530,19 @@ function Module:EnableOrDisableFrame(unit)
 		else
 			oUF:SetActiveStyle(_addonName)
 			if unit == "party" then
+				local iw, ih = sizeForLayout(profile.party)
 				frame = oUF:SpawnHeader(_addonName.."_Party", nil, "raid,party",
 					"showParty", true,
-					"yOffset", -23
-					--[=[
+					"yOffset", -23,
+					"initial-width", iw,
+					"initial-height", ih,
 					"oUF-initialConfigFunction", [[
-						self:SetWidth(225)
-						self:SetHeight(60)
+						local header = self:GetParent()
+						local w = header:GetAttribute("initial-width")
+						local h = header:GetAttribute("initial-height")
+						self:SetWidth(w)
+						self:SetHeight(h)
 					]]
-					--]=]
 				)
 				self.partyHeader = frame
 				frame.Disable = function(self)
@@ -1552,6 +1556,9 @@ function Module:EnableOrDisableFrame(unit)
 					end
 				end
 				frame.Layout = function(self)
+					local iw, ih = sizeForLayout(profile.party)
+					self:SetAttribute("initial-width", iw)
+					self:SetAttribute("initial-height", ih)
 					for i = 1,#self do
 						self[i]:Layout()
 					end
