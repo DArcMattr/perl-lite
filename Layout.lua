@@ -1415,6 +1415,7 @@ local Layout = function(self)
 		attach(self, "StatsFrame", "TOPLEFT", "NameFrame", "BOTTOMLEFT", 0, -c.statsTopPadding)
 	end
 	self:SetSize(sizeForLayout(c))
+	if self.anchor then self.anchor:Resize() end
 
 	LayoutHealPrediction(self, c)
 	LayoutCombatFeedback(self, c)
@@ -1603,6 +1604,7 @@ function Module:EnableOrDisableFrame(unit)
 					local iw, ih = sizeForLayout(profile.party)
 					self:SetAttribute("initial-width", iw)
 					self:SetAttribute("initial-height", ih)
+					self.container:Layout()
 					for i = 1,#self do
 						self[i]:Layout()
 					end
@@ -1612,11 +1614,26 @@ function Module:EnableOrDisableFrame(unit)
 						self[i]:UpdateAllElements(...)
 					end
 				end
+
+				frame.container = CreateFrame("Frame", nil, frame:GetParent())
+				frame:SetParent(frame.container)
+				frame.container.header = frame
+				frame.container.Layout = function(container)
+					local header = container.header
+					local w = header:GetAttribute("initial-width")
+					local h = header:GetAttribute("initial-height")
+					local yOffset = header:GetAttribute("yOffset")
+					container:SetSize(w, 4*h + 3*-yOffset)
+					if container.anchor then container.anchor:Resize() end
+				end
+				frame.container:Layout()
+				frame:SetPoint("TOPLEFT")
+				Core.Movable:RegisterMovable(frame.container, unit)
 			else
 				local cunit = unit:gsub("target","Target"):gsub("^%l", strupper)
 				frame = oUF:Spawn(unit, _addonName.."_"..cunit)
+				Core.Movable:RegisterMovable(frame, unit)
 			end
-			Core.Movable:RegisterMovable(frame, unit)
 		end
 		if unit == "player" then
 			Core.LayoutResource:Enable()
