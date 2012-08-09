@@ -26,8 +26,8 @@ local math_round = math.round
 local select = select
 --}}}
 
-function Module:ProfileChanged()
-	profile = Core.db.profile
+function Module:UpdateSettingsPointer(newSettings)
+	profile = newSettings
 end
 
 function Module:OpenOptions()
@@ -60,11 +60,6 @@ do
 	for i,_ in next, Core.Layout.valMaxFormatters do
 		valMaxFormatters_values[i] = i
 	end
-end
-
-local function generic_disabled_castbar(info)
-	local style = info[#info-1]
-	return not profile[style].castbar
 end
 
 local function generic_disabled_style(info)
@@ -107,6 +102,12 @@ end
 local function generic_set_style_or_false(info, val)
 	if val == falseStr then val = false end
 	return generic_set_style(info, val)
+end
+
+local function generic_disabled_castbar(info)
+	if generic_disabled_style(info) then return true end
+	local style = info[#info-1]
+	return not profile[style].castbar
 end
 
 local function generic_disabled_resource(info)
@@ -356,11 +357,21 @@ do --{{{ Module:MakeSectionArgs()
 		name = "Stats Top Padding",
 		min = -10, max = 10, step = 1,
 	}
+	-- statTags = true,
+	local statTags = { order = nextOrder(),
+		type = "toggle",
+		name = "Percents",
+	}
 	-- statTagWSpace = 35,
 	local statTagWSpace = { order = nextOrder(),
 		type = "range",
 		name = "Stat Tag Space",
 		min = 0, max = 80, step = 1,
+		disabled = function(info)
+			if generic_disabled_style(info) then return true end
+			local style = info[#info-1]
+			return not profile[style].statTags
+		end,
 	}
 	--[[
 	-- statTagW = 50,
@@ -465,6 +476,7 @@ do --{{{ Module:MakeSectionArgs()
 	section.nameH = nameH
 	section.statsW = statsW
 	section.statsTopPadding = statsTopPadding
+	section.statTags = statTags
 	section.statTagWSpace = statTagWSpace
 	-- section.statTagW = statTagW
 	-- section.statTagH = statTagH
@@ -504,8 +516,7 @@ end --}}}
 
 function Module:OnInitialize()
 	self.OnInitialize = nil
-	self:ProfileChanged()
-	Core:RegisterForProfileChange(self, "ProfileChanged")
+	self:UpdateSettingsPointer(Core.db.profile)
 
 	local _, _coreAddonTitle = GetAddOnInfo(_coreAddonName)
 	local options = {
@@ -546,7 +557,7 @@ function Module:OnInitialize()
 				set = function(info, val)
 					if val == falseStr then val = false end
 					profile.color.gradient = val
-					Core.Layout:ProfileChanged()
+					Core.Layout:LoadSettings()
 				end,
 			},
 			gradientStart = {
@@ -568,7 +579,7 @@ function Module:OnInitialize()
 				set = function(info, r, g, b, a)
 					local gc = profile.color[info[#info]]
 					gc[1],gc[2],gc[3],gc[4] = normalize255(r), normalize255(g), normalize255(b), normalize255(a)
-					Core.Layout:ProfileChanged()
+					Core.Layout:LoadSettings()
 				end,
 				disabled = function(info)
 					return not profile.color.gradient
@@ -593,7 +604,7 @@ function Module:OnInitialize()
 				set = function(info, r, g, b, a)
 					local gc = profile.color[info[#info]]
 					gc[1],gc[2],gc[3],gc[4] = normalize255(r), normalize255(g), normalize255(b), normalize255(a)
-					Core.Layout:ProfileChanged()
+					Core.Layout:LoadSettings()
 				end,
 				disabled = function(info)
 					return not profile.color.gradient
@@ -608,7 +619,7 @@ function Module:OnInitialize()
 					local r,g,b,a = x[1],x[2],x[3],x[4]
 					x[1],x[2],x[3],x[4] = y[1],y[2],y[3],y[4]
 					y[1],y[2],y[3],y[4] = r,g,b,a
-					Core.Layout:ProfileChanged()
+					Core.Layout:LoadSettings()
 				end,
 				disabled = function(info)
 					return not profile.color.gradient

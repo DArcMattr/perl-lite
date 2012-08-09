@@ -15,16 +15,16 @@ local profile
 --}}}
 --{{{ upvalues
 -- GLOBALS: CreateFrame
+-- GLOBALS: FAILED
 -- GLOBALS: GameFontNormal
 -- GLOBALS: IsResting
+-- GLOBALS: SPELL_FAILED_INTERRUPTED
 -- GLOBALS: ToggleDropDownMenu
 -- GLOBALS: UnitAffectingCombat
 -- GLOBALS: UnitClass
 -- GLOBALS: UnitClassification
 -- GLOBALS: UnitCreatureFamily
 -- GLOBALS: UnitCreatureType
--- GLOBALS: FAILED
--- GLOBALS: SPELL_FAILED_INTERRUPTED
 -- GLOBALS: UnitFactionGroup
 -- GLOBALS: UnitFrame_OnEnter
 -- GLOBALS: UnitFrame_OnLeave
@@ -37,6 +37,7 @@ local profile
 -- GLOBALS: UnitIsDead
 -- GLOBALS: UnitIsEnemy
 -- GLOBALS: UnitIsGhost
+-- GLOBALS: UnitIsPVP
 -- GLOBALS: UnitIsPlayer
 -- GLOBALS: UnitIsTapped
 -- GLOBALS: UnitIsTappedByPlayer
@@ -52,6 +53,7 @@ local floor = floor
 local format = format
 local max = max
 local next = next
+local rawget = rawget
 local setmetatable = setmetatable
 local strmatch = strmatch
 local strupper = strupper
@@ -60,7 +62,7 @@ local unpack = unpack
 local wipe = wipe
 --}}}
 
-do -- styles
+local stylePrototypes; do -- styles
 --{{{ style data
 --[[
 	basicStyle
@@ -74,7 +76,6 @@ do -- styles
 --]]
 local basicStyle = {
 	enabled = true,
-	scale = 1,
 	alpha = 216,
 	nestedAlpha = true,
 	rangeAlphaCoef = false,
@@ -126,6 +127,7 @@ local basicStyle = {
 	nameLeft = false,
 	statsW = 160,
 	statsTopPadding = -2,
+	statTags = true,
 	statTagWSpace = 35,
 	statTagW = 50,
 	statTagH = 12,
@@ -138,8 +140,12 @@ local basicStyle = {
 	powerFormat = "val/max",
 	portraitPadding = -3,
 }
-local stylePrototypes = {
+stylePrototypes = {
 	player = {
+		scale = 0.9,
+		attachPoint = "TOPLEFT",
+		attachX = 22,
+		attachY = -22,
 		nestedAlpha = false,
 		castTime = true,
 		castSafeZone = true,
@@ -154,6 +160,10 @@ local stylePrototypes = {
 		powerFormat = "val/max full",
 	},
 	pet = {
+		scale = 0.7,
+		attachPoint = "TOPLEFT",
+		attachX = 128,
+		attachY = -75,
 		nestedAlpha = false,
 		portrait = "3d",
 		portraitW = 50,
@@ -165,11 +175,16 @@ local stylePrototypes = {
 		nameFontSize = 10,
 		nameLeft = true,
 		statsW = 80,
+		statTags = false,
 		healthH = 14,
 		healthFontSize = 10,
 		powerFormat = "val/max full",
 	},
 	target = {
+		scale = 0.8,
+		attachPoint = "TOP",
+		attachX = -177,
+		attachY = -22,
 		sounds = "Master",
 		castbar = true,
 		portrait = "3d",
@@ -182,17 +197,33 @@ local stylePrototypes = {
 		masterLooterIcon = "TOP",
 	},
 	targettarget = {
+		scale = 0.7,
+		attachPoint = "TOP",
+		attachX = -15,
+		attachY = -22,
 		level = false,
 		classIcon = false,
 		raidIcon = "RIGHT",
 	},
 	focus = {
 		_inherits = "target",
+		scale = 0.8,
+		attachPoint = "LEFT",
+		attachX = 256,
+		attachY = 148,
 	},
 	focustarget = {
 		_inherits = "targettarget",
+		scale = 0.7,
+		attachPoint = "LEFT",
+		attachX = 450,
+		attachY = 151,
 	},
 	party = {
+		scale = 0.8,
+		attachPoint = "TOPLEFT",
+		attachX = 0,
+		attachY = -140,
 		rangeAlphaCoef = 0.5,
 		combatFeedback = true,
 		embedLevelAndClassIcon = true,
@@ -213,27 +244,19 @@ local stylePrototypes = {
 --}}} style data
 --{{{ style init
 do
-	local function shallowCopy(to, from)
-		for k,v in next, from do
-			to[k] = v
+	local complainsInvalidStyleProperty = {
+		__index = function(self, key)
+			error("invalid style property: "..(rawget(self, "_style") or "???").."."..tostring(key))
 		end
-	end
-	-- Copy style properties into the "defaults" tables.
+	}
+	setmetatable(basicStyle, complainsInvalidStyleProperty)
+	local indexesBasicStyle = { __index = basicStyle }
 	for k,proto in next, stylePrototypes do
-		local settings = Core.defaults.profile[k]
-		settings._style = k -- so a style knows its own name
-		shallowCopy(settings, basicStyle)
-		if proto._inherits then
-			shallowCopy(settings, stylePrototypes[proto._inherits])
-			settings._inherits = nil
-		end
-		shallowCopy(settings, proto)
+		proto._style = k -- so a style knows its own name
+		proto._indexme = { __index = proto }
+		local meta = proto._inherits and { __index=stylePrototypes[proto._inherits] } or indexesBasicStyle
+		setmetatable(proto, meta)
 	end
-	-- Drop the big style properites tables, but keep the names for code that wants to iterate on them.
-	for k,_ in next, stylePrototypes do
-		stylePrototypes[k] = k
-	end
-	Module.styleNames = stylePrototypes
 --}}} style init
 end
 end
@@ -257,27 +280,53 @@ local backdrop_black0 = {
 local grad1r, grad1g, grad1b, grad1a, grad2r, grad2g, grad2b, grad2a
 --}}} textures & backdrops
 
-local complainsInvalidStyleProperty = {
-	__index = function(self, key)
-		error("invalid style property: "..(self._style or "???").."."..tostring(key))
+function Module:UpdateSettingsPointer(newSettings)
+	profile = newSettings
+	for styleName,proto in next, stylePrototypes do
+		profile[styleName] = profile[styleName] or {}
+		setmetatable(profile[styleName], proto._indexme)
 	end
-}
-function Module:ProfileChanged()
-	profile = Core.db.profile
-	for styleName,_ in next, self.styleNames do
-		setmetatable(profile[styleName], complainsInvalidStyleProperty)
+	if oUF then
+		for _,frame in next, oUF.units do
+			frame.settings = profile[frame.stylekey]
+		end
 	end
+end
+
+function Module:PruneSettings()
+	for styleName,proto in next, stylePrototypes do
+		local settings = profile[styleName]
+		setmetatable(settings, nil)
+		for k,v in next, settings do
+			if v == proto[k] then
+				settings[k] = nil
+			end
+		end
+		if not next(settings) then
+			profile[styleName] = nil
+		end
+	end
+end
+
+function Module:LoadSettings()
 	do -- color upvalues
 		local color = profile.color
 		local s,e = color.gradientStart, color.gradientEnd
 		grad1r, grad1g, grad1b, grad1a = s[1]/255, s[2]/255, s[3]/255, s[4]/255
 		grad2r, grad2g, grad2b, grad2a = e[1]/255, e[2]/255, e[3]/255, e[4]/255
 	end
-	self:LayoutAll()
+	-- the frames themselves
+	self:EnableOrDisableFrame("player")
+	self:EnableOrDisableFrame("pet")
+	self:EnableOrDisableFrame("target")
+	self:EnableOrDisableFrame("targettarget")
+	self:EnableOrDisableFrame("focus")
+	self:EnableOrDisableFrame("focustarget")
+	self:EnableOrDisableFrame("party")
 end
 
 local menu = function(self)
-	local unit = self.unit -- self.unit:sub(1, -2)
+	local unit = self.unit:sub(1, -2)
 	local cunit = self.unit:gsub("^%l", strupper)
 
 	if cunit == "Vehicle" then
@@ -369,7 +418,11 @@ local HealthOverride = function(self, event, unit, powerType)
 				react = 4 -- neutral
 			end
 		end
-		nameColor = self.colors.reaction[react]
+		if react >= 5 and UnitPlayerControlled(unit) and not UnitIsPVP(unit) then
+			nameColor = self.colors.nameDefault
+		else
+			nameColor = self.colors.reaction[react]
+		end
 	end
 	name:SetTextColor(nameColor[1], nameColor[2], nameColor[3])
 
@@ -379,10 +432,7 @@ local HealthOverride = function(self, event, unit, powerType)
 	health:SetValue(disconnected and maxVal or val) -- fill to maxVal when disconnected
 	health.disconnected = disconnected
 
-	-- health text
-	health.text:formatValMax(val, maxVal)
-
-	-- health tag
+	-- health text & tag
 	local tag
 	if disconnected then
 		tag = "Offline"
@@ -395,12 +445,22 @@ local HealthOverride = function(self, event, unit, powerType)
 	elseif UnitIsAFK(unit) then
 		tag = "Away"
 	end
-	if tag then
-		health.tag:SetText(tag)
-	elseif maxVal ~= 0 then
-		health.tag:SetFormattedText("%d%%", (100 * val / maxVal))
+	if health.tag then
+		-- text & tag
+		health.text:formatValMax(val, maxVal)
+		if tag then
+			health.tag:SetText(tag)
+		elseif maxVal ~= 0 then
+			health.tag:SetFormattedText("%d%%", (100 * val / maxVal))
+		else
+			health.tag:SetText("")
+		end
+	elseif tag then
+		-- tag overrides text
+		health.text:SetText(tag)
 	else
-		health.tag:SetText("")
+		-- text only
+		health.text:formatValMax(val, maxVal)
 	end
 
 	-- health color
@@ -465,12 +525,14 @@ local PowerOverride = function(self, event, unit)
 	-- text & tag
 	if maxVal == 0 then
 		power.text:Hide()
-		power.tag:Hide()
+		if power.tag then power.tag:Hide() end
 	else
 		power.text:formatValMax(val, maxVal)
-		power.tag:SetFormattedText("%d%%", (100 * val / maxVal))
 		power.text:Show()
-		power.tag:Show()
+		if power.tag then
+			power.tag:SetFormattedText("%d%%", (100 * val / maxVal))
+			power.tag:Show()
+		end
 	end
 
 	-- bar color
@@ -550,6 +612,14 @@ local function CreateFrameSameLevel(frameType, name, parent, template)
 	return newf
 end
 
+local function MakeStatusBarTag(bar)
+	local tag = bar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	tag:SetPoint("LEFT", bar, "RIGHT", 0, 1)
+	tag:SetJustifyH("LEFT")
+	tag:SetTextColor(1, 1, 1)
+	return tag
+end
+
 local function CreateStatusBar(parent)
 	local bar = CreateFrameSameLevel("StatusBar", nil, parent)
 
@@ -566,13 +636,6 @@ local function CreateStatusBar(parent)
 	text:SetPoint("BOTTOMRIGHT", bar, 0, 1)
 	text:SetJustifyH("CENTER")
 	text:SetTextColor(1, 1, 1)
-
-	-- tag
-	local tag = bar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	bar.tag = tag
-	tag:SetPoint("LEFT", bar, "RIGHT", 0, 1)
-	tag:SetJustifyH("LEFT")
-	tag:SetTextColor(1, 1, 1)
 
 	return bar
 end
@@ -635,11 +698,9 @@ local function attach(self, frame1name, point1, frame2name, point2, xOff, yOff, 
 	frame1:SetPoint(point1, frame2, point2, xOff, yOff)
 end
 
-local function DoNameFrame(unitFrame, unit, isSingle)
+local function DoNameFrame(unitFrame)
 	-- NameFrame
-	local NameFrame = CreateBorderedChildFrame(unitFrame)
-	unitFrame.NameFrame = NameFrame
-
+	local NameFrame = unitFrame.NameFrame
 	local Name = NameFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	unitFrame.Name = Name
 	Name:SetPoint("BOTTOMRIGHT", NameFrame, 0, 1)
@@ -647,7 +708,7 @@ local function DoNameFrame(unitFrame, unit, isSingle)
 	unitFrame:Tag(Name, "[name]")
 end
 
-local function DoStatsFrame(unitFrame, unit, isSingle)
+local function DoStatsFrame(unitFrame)
 	-- StatsFrame
 	local StatsFrame = CreateBorderedChildFrame(unitFrame)
 	unitFrame.StatsFrame = StatsFrame
@@ -658,7 +719,6 @@ local function DoStatsFrame(unitFrame, unit, isSingle)
 	Health:SetPoint("TOP", StatsFrame, 0, -5)
 	Health:SetPoint("LEFT", StatsFrame, 5, 0)
 
-	-- I don't understand this oUF stuff yet
 	Health.frequentUpdates = true
 	Health.colorSmooth = true
 	Health.Override = HealthOverride
@@ -672,13 +732,13 @@ local function DoStatsFrame(unitFrame, unit, isSingle)
 	Power.Override = PowerOverride
 end
 
-local function LayoutPvPIcon(self, c, initial)
+local function LayoutPvPIcon(self, c)
 	if c.pvpIcon then
 		if not self.PvP then
 			self.PvP = self.NameFrame:CreateTexture(nil, "OVERLAY")
 			self.PvP:SetTexCoord(0, 42/64, 0, 42/64) -- icon is 42x42 in a 64x64 file
 		end
-		if not initial then self:EnableElement("PvP") end
+		self:EnableElement("PvP")
 		self.PvP:SetSize(c.pvpIconSize, c.pvpIconSize)
 		self.PvP:SetPoint("CENTER", self.NameFrame, c.pvpIcon, c.pvpIconX, c.pvpIconY)
 	elseif self.PvP then
@@ -691,7 +751,7 @@ local function LayoutPvPIcon(self, c, initial)
 			self.PvPTimer = self.NameFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 			self.PvPTimer:SetTextColor(1, 1, 1)
 		end
-		if not initial then self:EnableElement("PvPTimer") end
+		self:EnableElement("PvPTimer")
 		self.PvPTimer:SetPoint("CENTER", self.PvP, "CENTER", 0, 1)
 	elseif self.PvPTimer then
 		self:DisableElement("PvPTimer")
@@ -699,12 +759,12 @@ local function LayoutPvPIcon(self, c, initial)
 	end
 end
 
-local function LayoutRaidIcon(self, c, initial)
+local function LayoutRaidIcon(self, c)
 	if c.raidIcon then
 		if not self.RaidIcon then
 			self.RaidIcon = self.NameFrame:CreateTexture(nil, "OVERLAY")
 		end
-		if not initial then self:EnableElement("RaidIcon") end
+		self:EnableElement("RaidIcon")
 		self.RaidIcon:SetSize(c.raidIconSize, c.raidIconSize)
 		self.RaidIcon:SetPoint("CENTER", self.NameFrame, c.raidIcon, c.raidIconX, c.raidIconY)
 	elseif self.RaidIcon then
@@ -713,12 +773,12 @@ local function LayoutRaidIcon(self, c, initial)
 	end
 end
 
-local function LayoutLeaderIcon(self, c, initial)
+local function LayoutLeaderIcon(self, c)
 	if c.leaderIcon then
 		if not self.Leader then
 			self.Leader = self.NameFrame:CreateTexture(nil, "OVERLAY")
 		end
-		if not initial then self:EnableElement("Leader") end
+		self:EnableElement("Leader")
 		self.Leader:SetSize(c.leaderIconSize, c.leaderIconSize)
 		self.Leader:SetPoint("CENTER", self.NameFrame, c.leaderIcon, c.leaderIconX, c.leaderIconY)
 	elseif self.Leader then
@@ -727,12 +787,12 @@ local function LayoutLeaderIcon(self, c, initial)
 	end
 end
 
-local function LayoutMasterLooterIcon(self, c, initial)
+local function LayoutMasterLooterIcon(self, c)
 	if c.masterLooterIcon then
 		if not self.MasterLooter then
 			self.MasterLooter = self.NameFrame:CreateTexture(nil, "OVERLAY")
 		end
-		if not initial then self:EnableElement("MasterLooter") end
+		self:EnableElement("MasterLooter")
 		self.MasterLooter:SetSize(c.masterLooterIconSize, c.masterLooterIconSize)
 		self.MasterLooter:SetPoint("CENTER", self.NameFrame, c.masterLooterIcon, c.masterLooterIconX, c.masterLooterIconY)
 	elseif self.MasterLooter then
@@ -741,7 +801,7 @@ local function LayoutMasterLooterIcon(self, c, initial)
 	end
 end
 
-local function LayoutCombatIcon(self, c, initial)
+local function LayoutCombatIcon(self, c)
 	if c.combatIcon then
 		if not self.Combat then
 			self.Combat = self.NameFrame:CreateTexture(nil, "OVERLAY")
@@ -753,8 +813,8 @@ local function LayoutCombatIcon(self, c, initial)
 			self.Resting:SetTexCoord(0/64, 32/64, 0/64, 32/64)
 			self.Resting.Override = RestingOverride
 		end
-		if not initial then self:EnableElement("Combat") end
-		if not initial then self:EnableElement("Resting") end
+		self:EnableElement("Combat")
+		self:EnableElement("Resting")
 		self.Combat:SetSize(c.combatIconSize, c.combatIconSize)
 		self.Combat:SetPoint("CENTER", self.NameFrame, c.combatIcon, c.combatIconX, c.combatIconY)
 		self.Resting:SetSize(c.combatIconSize, c.combatIconSize)
@@ -767,18 +827,18 @@ local function LayoutCombatIcon(self, c, initial)
 	end
 end
 
-local function LayoutRange(self, c, initial)
+local function LayoutRange(self, c)
 	if c.rangeAlphaCoef then
 		self.Range = self.Range or {}
 		self.Range.insideAlpha = c.alpha / 255
 		self.Range.outsideAlpha = floor(c.alpha * c.rangeAlphaCoef + .5) / 255
-		if not initial then self:EnableElement("Range") end
+		self:EnableElement("Range")
 	elseif self.Range then
 		self:DisableElement("Range")
 	end
 end
 
-local function LayoutPortrait(self, c, initial)
+local function LayoutPortrait(self, c)
 	if c.portrait and not self.PortraitFrame then
 		self.PortraitFrame = CreateBorderedChildFrame(self, backdrop_black0)
 	end
@@ -805,7 +865,7 @@ local function LayoutPortrait(self, c, initial)
 					local _2d = self.PortraitFrame._2d or self.PortraitFrame:CreateTexture(nil, "ARTWORK")
 					self.Portrait = _2d
 				end
-				if not initial then self:EnableElement("Portrait") end
+				self:EnableElement("Portrait")
 				self.Portrait:Show()
 			end
 		end
@@ -822,7 +882,7 @@ local function LayoutPortrait(self, c, initial)
 	end
 end
 
-local function LayoutLevel(self, c, initial)
+local function LayoutLevel(self, c)
 	local specialLevelFrame = c.embedLevelAndClassIcon and (c.level or c.classIcon) and not c.portrait
 	-- LevelFrame
 	if c.level or specialLevelFrame then
@@ -845,7 +905,7 @@ local function LayoutLevel(self, c, initial)
 		if not self.Level then
 			self.Level = self.LevelFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
 		end
-		if not initial then self:EnableElement("Level") end
+		self:EnableElement("Level")
 		self.Level:ClearAllPoints()
 		if specialLevelFrame then
 			if c.classIcon then
@@ -862,7 +922,7 @@ local function LayoutLevel(self, c, initial)
 	end
 end
 
-local function LayoutClassIcon(self, c, initial)
+local function LayoutClassIcon(self, c)
 	local specialLevelFrame = c.embedLevelAndClassIcon and (c.level or c.classIcon) and not c.portrait
 	if c.classIcon then
 		if not self.ClassIcon then
@@ -881,7 +941,7 @@ local function LayoutClassIcon(self, c, initial)
 			self.ClassIcon:SetTexture(classIconsBg)
 			attach(self, "ClassIcon", "BOTTOMRIGHT", "corner", "BOTTOMLEFT", -1, 2, 2)
 		end
-		if not initial then self:EnableElement("ClassIcon") end
+		self:EnableElement("ClassIcon")
 		self.ClassIcon:Show()
 	elseif self.ClassIcon and self.ClassIcon:IsShown() then
 		self.ClassIcon:Hide()
@@ -890,7 +950,7 @@ local function LayoutClassIcon(self, c, initial)
 	end
 end
 
-local function LayoutEliteFrame(self, c, initial)
+local function LayoutEliteFrame(self, c)
 	if c.eliteType then
 		if not self.EliteFrame then
 			self.EliteFrame = CreateBorderedChildFrame(self)
@@ -908,7 +968,7 @@ local function LayoutEliteFrame(self, c, initial)
 	end
 end
 
-local function LayoutRaceFrame(self, c, initial)
+local function LayoutRaceFrame(self, c)
 	if c.npcRace then
 		if not self.RaceFrame then
 			self.RaceFrame = CreateBorderedChildFrame(self)
@@ -927,7 +987,7 @@ local function LayoutRaceFrame(self, c, initial)
 	end
 end
 
-local function LayoutNameAndStats(self, c, initial)
+local function LayoutNameAndStats(self, c)
 	UpdateFrameGradient(self.NameFrame)
 	self.NameFrame:ClearAllPoints()
 	self.NameFrame:SetSize(c.nameW, c.nameH)
@@ -942,30 +1002,48 @@ local function LayoutNameAndStats(self, c, initial)
 
 	UpdateFrameGradient(self.StatsFrame)
 	self.StatsFrame:ClearAllPoints()
-	self.StatsFrame:SetSize(c.statsW, c.healthH + c.powerH + 10)
+	self.StatsFrame:SetSize(c.statsW, c.healthH + (self.Power:IsShown() and c.powerH or 0) + 10)
 
+	local Health, Power = self.Health, self.Power
 	UpdateBarTextures(self.Health)
-	self.Health.text.formatValMax = Module.valMaxFormatters[c.healthFormat]
-	self.Health.text:SetFont(GameFontNormal:GetFont(), c.healthFontSize)
-	self.Health.tag:SetFont(GameFontNormal:GetFont(), c.tagFontSize)
-	self.Health:SetHeight(c.healthH)
-	self.Health.tag:SetSize(c.statTagW, c.statTagH)
+	Health.text.formatValMax = Module.valMaxFormatters[c.healthFormat]
+	Health.text:SetFont(GameFontNormal:GetFont(), c.healthFontSize)
+	Health:SetHeight(c.healthH)
+	UpdateBarTextures(Power)
+	Power.text.formatValMax = Module.valMaxFormatters[c.powerFormat]
+	Power.text:SetFont(GameFontNormal:GetFont(), c.powerFontSize)
 
-	UpdateBarTextures(self.Power)
-	self.Power.text.formatValMax = Module.valMaxFormatters[c.powerFormat]
-	self.Power.text:SetFont(GameFontNormal:GetFont(), c.powerFontSize)
-	self.Power.tag:SetFont(GameFontNormal:GetFont(), c.tagFontSize)
-	self.Power.tag:SetSize(c.statTagW, c.statTagH)
-	self.Health:SetPoint("RIGHT", self.StatsFrame, -(5 + c.statTagWSpace), 0)
+	local attachX = -5
+	if c.statTags then
+		if not Health.tag then
+			Health.tag = Health._tag or MakeStatusBarTag(Health)
+			Health.tag:Show()
+			Power.tag = Power._tag or MakeStatusBarTag(Power)
+			Power.tag:Show()
+		end
+		Health.tag:SetFont(GameFontNormal:GetFont(), c.tagFontSize)
+		Health.tag:SetSize(c.statTagW, c.statTagH)
+		Power.tag:SetFont(GameFontNormal:GetFont(), c.tagFontSize)
+		Power.tag:SetSize(c.statTagW, c.statTagH)
+		attachX = attachX - c.statTagWSpace
+	elseif Health.tag then
+		Health._tag = Health.tag
+		Health.tag:Hide()
+		Health.tag = nil
+		Power._tag = Power.tag
+		Power.tag:Hide()
+		Power.tag = nil
+	end
+	Health:SetPoint("RIGHT", self.StatsFrame, attachX, 0)
 end
 
-local function LayoutHealPrediction(self, c, initial)
+local function LayoutHealPrediction(self, c)
 	if c.healPrediction then
 		if not self.HealPrediction then
 			self.HealPrediction = CreateFrameSameLevel("StatusBar", nil, self.StatsFrame)
 			self.HealPrediction.Override = HealPredictionOverride
 		end
-		if not initial then self:EnableElement("HealPrediction") end
+		self:EnableElement("HealPrediction")
 		self.HealPrediction:SetStatusBarTexture(profile.barTexture)
 		self.HealPrediction:GetStatusBarTexture():SetDrawLayer("ARTWORK", -1)
 		self.HealPrediction:SetStatusBarColor(0, 1, 1)
@@ -977,12 +1055,12 @@ local function LayoutHealPrediction(self, c, initial)
 	end
 end
 
-local function LayoutCombatFeedback(self, c, initial)
+local function LayoutCombatFeedback(self, c)
 	if c.combatFeedback then
 		if not self.SimpleCombatFeedback then
 			self.SimpleCombatFeedback = self:CreateFontString(nil, "OVERLAY", "NumberFontNormalHuge")
 		end
-		if not initial then self:EnableElement("SimpleCombatFeedback") end
+		self:EnableElement("SimpleCombatFeedback")
 		self.SimpleCombatFeedback:ClearAllPoints()
 		self.SimpleCombatFeedback:SetPoint("CENTER", c.portrait and self.PortraitFrame or self.NameFrame)
 	elseif self.SimpleCombatFeedback then
@@ -991,18 +1069,18 @@ local function LayoutCombatFeedback(self, c, initial)
 	end
 end
 
-local function LayoutSounds(self, c, initial)
+local function LayoutSounds(self, c)
 	if c.sounds then
 		self.SoundOnSelect = self.SoundOnSelect or {}
 		self.SoundOnSelect.channel = c.sounds
-		if not initial then self:EnableElement("SoundOnSelect") end
+		self:EnableElement("SoundOnSelect")
 	elseif self.SoundOnSelect then
 		self:DisableElement("SoundOnSelect")
 	end
 	if c.pvpSound then
 		self.PvPSound = self.PvPSound or {}
 		self.PvPSound.channel = c.pvpSound
-		if not initial then self:EnableElement("PvPSound") end
+		self:EnableElement("PvPSound")
 	elseif self.PvPSound then
 		self:DisableElement("PvPSound")
 	end
@@ -1124,7 +1202,7 @@ local LayoutCastbar; do
 		end
 	end
 
-	function LayoutCastbar(self, c, initial)
+	function LayoutCastbar(self, c)
 		if c.castbar then
 			local Castbar = self.Castbar
 			if not Castbar then
@@ -1166,7 +1244,7 @@ local LayoutCastbar; do
 				Flash.border:SetDrawLayer("OVERLAY", 2)
 				Flash.border:SetBlendMode("ADD")
 			end
-			if not initial then self:EnableElement("Castbar") end
+			self:EnableElement("Castbar")
 
 			local ins = self.NameFrame:GetBackdrop().insets
 			Castbar:SetPoint("TOPLEFT", ins.left, -ins.top)
@@ -1253,7 +1331,32 @@ local LayoutCastbar; do
 	end
 end
 
-local Layout = function(self, initial)
+local function sizeForLayout(c)
+	local extraWidth = 0
+	local statsWidth = c.statsW
+	local hasPortrait = c.portrait
+	if hasPortrait then
+		extraWidth = extraWidth + (c.portraitW + c.portraitPadding)
+	end
+	if c.embedLevelAndClassIcon and (c.level or c.classIcon) then
+		if hasPortrait then
+			-- extra space for LevelFrame outside the portrait
+			extraWidth = extraWidth + (27 - 2)
+		else
+			-- embedded level frame adds to statsWidth
+			statsWidth = statsWidth + (30 - 2)
+		end
+	end
+	local width = extraWidth + max(c.nameW, statsWidth)
+
+	local portraitHeight = hasPortrait and c.portraitH or 0
+	local nameStatsHeight = c.nameH + (c.healthH + c.powerH + 10) + c.statsTopPadding
+	local height = max(portraitHeight, nameStatsHeight)
+
+	return width, height
+end
+
+local Layout = function(self)
 	local c = self.settings
 
 	-- Alphas. XPerl is weird about this. Nested frames get an alpha that combines with the main one, with some exceptions.
@@ -1267,14 +1370,12 @@ local Layout = function(self, initial)
 		self.StatsFrame:SetAlpha(1)
 	end
 
-	self.corner = false -- to make sure nothing tries to use until it's set
-	LayoutNameAndStats(self, c, initial)
-	LayoutPortrait(self, c, initial)
-	LayoutLevel(self, c, initial)
+	LayoutNameAndStats(self, c)
+	LayoutPortrait(self, c)
+	LayoutLevel(self, c)
 
 	-- 4 basic layouts.
-	local width
-	local height = max(c.portrait and c.portraitH or 0, c.nameH + (c.healthH + c.powerH + 10) + c.statsTopPadding)
+	-- sizeForLayout() needs to match the width/height requirements of what's done here.
 	if c.embedLevelAndClassIcon and (c.level or c.classIcon) then
 		if c.portrait then
 			-- "group" frame w/ portrait
@@ -1286,18 +1387,15 @@ local Layout = function(self, initial)
 			end
 			attach(self, "NameFrame", "TOPLEFT", "PortraitFrame", "TOPRIGHT", c.portraitPadding, 0)
 			attach(self, "StatsFrame", "TOPLEFT", "NameFrame", "BOTTOMLEFT", 0, -c.statsTopPadding)
-			width = 27 + c.portraitW - 2 + max(c.nameW, c.statsW) + c.portraitPadding
 			self.corner = self.PortraitFrame
 		else
 			-- "group" frame w/o portrait. This has the distinctive embedded level frame.
 			attach(self, "NameFrame", "TOPLEFT", nil, "TOPLEFT", 0, 0)
 			attach(self, "LevelFrame", "TOPLEFT", "NameFrame", "BOTTOMLEFT", 0, -c.statsTopPadding)
 			attach(self, "StatsFrame", "TOPLEFT", "LevelFrame", "TOPRIGHT", -2, 0)
-			width = max(c.nameW, 30 + c.statsW - 2)
 			self.corner = self.LevelFrame
 		end
 	else
-		width = max(c.nameW, c.statsW)
 		if c.portrait then
 			-- "standard" frame w/ portrait, like player & target.
 			attach(self, "PortraitFrame", "TOPLEFT", nil, "TOPLEFT", 0, 0)
@@ -1305,7 +1403,6 @@ local Layout = function(self, initial)
 			if c.level then
 				attach(self, "LevelFrame", "TOPRIGHT", "PortraitFrame", "TOPLEFT", 2, 0)
 			end
-			width = width + c.portraitW + c.portraitPadding
 			self.corner = self.PortraitFrame
 		else
 			-- "standard" frame w/o portrait, like the default targettarget
@@ -1317,21 +1414,22 @@ local Layout = function(self, initial)
 		end
 		attach(self, "StatsFrame", "TOPLEFT", "NameFrame", "BOTTOMLEFT", 0, -c.statsTopPadding)
 	end
-	self:SetSize(width, height)
+	self:SetSize(sizeForLayout(c))
+	if self.anchor then self.anchor:Resize() end
 
-	LayoutHealPrediction(self, c, initial)
-	LayoutCombatFeedback(self, c, initial)
-	LayoutRange(self, c, initial)
-	LayoutPvPIcon(self, c, initial)
-	LayoutRaidIcon(self, c, initial)
-	LayoutLeaderIcon(self, c, initial)
-	LayoutMasterLooterIcon(self, c, initial)
-	LayoutCombatIcon(self, c, initial)
-	LayoutClassIcon(self, c, initial)
-	LayoutEliteFrame(self, c, initial)
-	LayoutRaceFrame(self, c, initial)
-	LayoutSounds(self, c, initial)
-	LayoutCastbar(self, c, initial)
+	LayoutHealPrediction(self, c)
+	LayoutCombatFeedback(self, c)
+	LayoutRange(self, c)
+	LayoutPvPIcon(self, c)
+	LayoutRaidIcon(self, c)
+	LayoutLeaderIcon(self, c)
+	LayoutMasterLooterIcon(self, c)
+	LayoutCombatIcon(self, c)
+	LayoutClassIcon(self, c)
+	LayoutEliteFrame(self, c)
+	LayoutRaceFrame(self, c)
+	LayoutSounds(self, c)
+	LayoutCastbar(self, c)
 end
 
 local eliteTypeDisplay = {
@@ -1353,7 +1451,13 @@ local PostUpdate = function(self, event)
 			if c.classIcon then self.ClassIcon:Show() end
 			self.EliteFrame:Hide()
 		else
-			if c.classIcon then self.ClassIcon:Hide() end
+			if c.classIcon then
+				if c.embedLevelAndClassIcon and not c.portrait then
+					self.ClassIcon:Show()
+				else
+					self.ClassIcon:Hide()
+				end
+			end
 			local text = self.EliteFrame.text
 			local color = self.colors.elite[eliteType]
 			text:SetText(eliteTypeDisplay[eliteType])
@@ -1366,48 +1470,55 @@ local PostUpdate = function(self, event)
 		if UnitIsPlayer(unit) then
 			self.RaceFrame:Hide()
 		else
-			local race = UnitCreatureFamily(unit) or UnitCreatureType(unit)
+			local race = UnitCreatureType(unit)
 			self.RaceFrame.text:SetText(race)
 			self.RaceFrame:SetWidth(self.RaceFrame.text:GetStringWidth() + 10)
 			self.RaceFrame:ClearAllPoints()
-			attach(self, "RaceFrame", "TOPLEFT", "corner", "BOTTOMLEFT", 0, 2)
-			-- FIXME: special logic for too-long races
-			-- if self.RaceFrame:GetWidth() > self.PortraitFrame:GetWidth() then
-				-- attachLeft = not attachLeft
-			-- end
-			-- if attachLeft then
-				-- self.RaceFrame:SetPoint("TOPLEFT", self.PortraitFrame, "BOTTOMLEFT", 0, 2)
-			-- else
-				-- self.RaceFrame:SetPoint("TOPRIGHT", self.PortraitFrame, "BOTTOMRIGHT", 0, 2)
-			-- end
+			if self.corner == self.StatsFrame then
+				attach(self, "RaceFrame", "TOPRIGHT", "corner", "BOTTOMLEFT", 0, 2)
+			elseif self.RaceFrame:GetWidth() > self.corner:GetWidth() then
+				attach(self, "RaceFrame", "TOPRIGHT", "corner", "BOTTOMRIGHT", 0, 2)
+			else
+				attach(self, "RaceFrame", "TOPLEFT", "corner", "BOTTOMLEFT", 0, 2)
+			end
 			self.RaceFrame:Show()
 		end
 	end
 end
 
-local Shared = function(self, unit, isSingle)
+local function LayoutOnce_OnUpdate(nameFrame)
+	nameFrame:SetScript("OnUpdate", nil)
+	local self = nameFrame:GetParent()
+
 	self.menu = menu
 	self:SetScript("OnEnter", UnitFrame_OnEnter)
 	self:SetScript("OnLeave", UnitFrame_OnLeave)
 	self:RegisterForClicks("AnyUp")
 
-	DoNameFrame(self, unit, isSingle)
-	DoStatsFrame(self, unit, isSingle)
+	DoNameFrame(self)
+	DoStatsFrame(self)
+	self:EnableElement("Health")
+	self:EnableElement("Power")
 
 	self.colors = Module.colors
 	self.PostUpdate = PostUpdate
-
-	self.settings = profile[unit] or profile.party
 	self.Layout = Layout
-	self:Layout(true)
+	self:Layout()
+	self:UpdateAllElements()
 end
 
-function Module:LayoutAll()
-	if oUF then
-		for i = 1,#oUF.objects do
-			oUF.objects[i]:Layout()
-		end
+local function noop() end
+local Shared = function(self, unit, isSingle)
+	self.settings = profile[unit] or profile.party
+	self.stylekey = self.settings._style
+	self.Layout = noop
+
+	-- Postpone as much initialization as possible. But we need the size, and a single child for OnUpdate.
+	if isSingle then
+		self:SetSize(sizeForLayout(self.settings))
 	end
+	self.NameFrame = CreateBorderedChildFrame(self)
+	self.NameFrame:SetScript("OnUpdate", LayoutOnce_OnUpdate)
 end
 
 function Module:PLAYER_FLAGS_CHANGED(event, unit)
@@ -1460,21 +1571,40 @@ function Module:EnableOrDisableFrame(unit)
 		if frame then
 			frame:Enable()
 			frame:Layout()
+			frame:UpdateAllElements()
 		else
 			oUF:SetActiveStyle(_addonName)
 			if unit == "party" then
+				local iw, ih = sizeForLayout(profile.party)
 				frame = oUF:SpawnHeader(_addonName.."_Party", nil, "raid,party",
 					"showParty", true,
-					"yOffset", -23
-					--[=[
+					"yOffset", -23,
+					"initial-width", iw,
+					"initial-height", ih,
 					"oUF-initialConfigFunction", [[
-						self:SetWidth(225)
-						self:SetHeight(60)
+						local header = self:GetParent()
+						local w = header:GetAttribute("initial-width")
+						local h = header:GetAttribute("initial-height")
+						self:SetWidth(w)
+						self:SetHeight(h)
 					]]
-					--]=]
 				)
 				self.partyHeader = frame
+				frame.Disable = function(self)
+					for i = 1,#self do
+						self[i]:Disable()
+					end
+				end
+				frame.Enable = function(self)
+					for i = 1,#self do
+						self[i]:Enable()
+					end
+				end
 				frame.Layout = function(self)
+					local iw, ih = sizeForLayout(profile.party)
+					self:SetAttribute("initial-width", iw)
+					self:SetAttribute("initial-height", ih)
+					self.container:Layout()
 					for i = 1,#self do
 						self[i]:Layout()
 					end
@@ -1484,11 +1614,26 @@ function Module:EnableOrDisableFrame(unit)
 						self[i]:UpdateAllElements(...)
 					end
 				end
+
+				frame.container = CreateFrame("Frame", nil, frame:GetParent())
+				frame:SetParent(frame.container)
+				frame.container.header = frame
+				frame.container.Layout = function(container)
+					local header = container.header
+					local w = header:GetAttribute("initial-width")
+					local h = header:GetAttribute("initial-height")
+					local yOffset = header:GetAttribute("yOffset")
+					container:SetSize(w, 4*h + 3*-yOffset)
+					if container.anchor then container.anchor:Resize() end
+				end
+				frame.container:Layout()
+				frame:SetPoint("TOPLEFT")
+				Core.Movable:RegisterMovable(frame.container, unit)
 			else
 				local cunit = unit:gsub("target","Target"):gsub("^%l", strupper)
 				frame = oUF:Spawn(unit, _addonName.."_"..cunit)
+				Core.Movable:RegisterMovable(frame, unit)
 			end
-			Core.Movable:RegisterMovable(frame, unit)
 		end
 		if unit == "player" then
 			Core.LayoutResource:Enable()
@@ -1503,22 +1648,14 @@ end
 
 function Module:OnInitialize()
 	self.OnInitialize = nil
-	self:ProfileChanged()
-	Core:RegisterForProfileChange(self, "ProfileChanged")
-
+	Core.db.RegisterCallback(self, "OnProfileShutdown", "PruneSettings")
 	self:InitOUFSettings()
 	oUF:RegisterStyle(_addonName, Shared)
 end
 
 function Module:OnEnable()
 	self:RegisterEvent("PLAYER_FLAGS_CHANGED")
-	self:EnableOrDisableFrame("player")
-	self:EnableOrDisableFrame("pet")
-	self:EnableOrDisableFrame("target")
-	self:EnableOrDisableFrame("targettarget")
-	self:EnableOrDisableFrame("focus")
-	self:EnableOrDisableFrame("focustarget")
-	self:EnableOrDisableFrame("party")
+	self:LoadSettings()
 end
 
 function Module:OnDisable()

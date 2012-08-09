@@ -32,6 +32,12 @@ local _BACKDROP = {
 }
 --}}}
 --{{{ upvalues
+local CreateFrame = CreateFrame
+local GameFontNormal = GameFontNormal
+local InCombatLockdown = InCombatLockdown
+local UIParent = UIParent
+local error = error
+local next = next
 --}}}
 
 local getBackdrop --{{{
@@ -45,41 +51,53 @@ do
 
 		local frame = self.obj
 		frame:ClearAllPoints();
-		frame:SetAllPoints(self);
+		frame:SetPoint("TOPLEFT", self)
 	end
 
 	local OnDragStop = function(self)
 		self:StopMovingOrSizing()
+		self.obj:SetAllPoints(self)
 		LibWin.SavePosition(self.obj)
 
-		self:ClearAllPoints()
-		self:SetAllPoints(self.obj)
+		self:Resize()
+	end
+
+	local backdropResize = function(backdrop)
+		local obj = backdrop.obj
+		local w,h = obj:GetSize()
+		local s = obj:GetScale()
+		backdrop:SetScale(1)
+		backdrop:SetSize(w*s, h*s)
+		backdrop:ClearAllPoints()
+		local point, _, _, x, y = obj:GetPoint(1)
+		backdrop:SetPoint(point, x*s, y*s)
 	end
 
 	getBackdrop = function(obj)
-		if(not obj:GetCenter()) then return end
 		if(backdropPool[obj]) then return backdropPool[obj] end
 
 		local backdrop = CreateFrame"Frame"
+		backdrop.obj = obj
+		obj.anchor = backdrop
 		backdrop:SetParent(UIParent)
 		backdrop:Hide()
 
 		backdrop:SetBackdrop(_BACKDROP)
 		backdrop:SetFrameStrata"DIALOG"
-		backdrop:SetAllPoints(obj)
+		backdrop.Resize = backdropResize
+		backdrop:Resize()
 
 		backdrop:EnableMouse(true)
 		backdrop:SetMovable(true)
+		backdrop:SetClampedToScreen()
 		backdrop:RegisterForDrag"LeftButton"
 
 		local name = backdrop:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+		backdrop.name = name
 		name:SetPoint"CENTER"
 		name:SetJustifyH"CENTER"
 		name:SetFont(GameFontNormal:GetFont(), 12)
 		name:SetTextColor(1, 1, 1)
-
-		backdrop.name = name
-		backdrop.obj = obj
 
 		backdrop:SetBackdropBorderColor(0, .9, 0)
 		backdrop:SetBackdropColor(0, .9, 0)
@@ -94,9 +112,21 @@ do
 	end
 end --}}}
 
-function Module:ProfileChanged()
-	profile = Core.db.profile
-	-- TODO: LibWin is supposed to need help here.
+function Module:UpdateSettingsPointer(newSettings)
+	profile = newSettings
+	-- We give LibWin references to bits of profile for it to save positions in. Update them.
+	for name,object in next, configObjects do
+		LibWin.RegisterConfig(object, profile[name], LibWin_names)
+	end
+end
+
+function Module:LoadSettings()
+	for _,object in next, configObjects do
+		LibWin.RestorePosition(object)
+	end
+	for _,backdrop in next, backdropPool do
+		backdrop:Resize()
+	end
 end
 
 function Module:RestorePosition(configName)
@@ -148,8 +178,6 @@ end
 
 function Module:OnInitialize()
 	self.OnInitialize = nil
-	self:ProfileChanged()
-	Core:RegisterForProfileChange(self, "ProfileChanged")
 end
 
 function Module:OnEnable()
@@ -158,3 +186,10 @@ end
 
 function Module:OnDisable()
 end
+--@do-not-package@ --{{{
+
+Module.backdropPool = backdropPool
+Module.configNames = configNames
+Module.configObjects = configObjects
+
+--}}} --@end-do-not-package@

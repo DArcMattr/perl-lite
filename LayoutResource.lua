@@ -33,16 +33,18 @@ local ShardBarFrame = ShardBarFrame
 local TotemFrame = TotemFrame
 local UnitClass = UnitClass
 local assert = assert
+local getmetatable = getmetatable
 local hooksecurefunc = hooksecurefunc
 local unpack = unpack
 local wipe = wipe
 --}}}
 
-function Module:ProfileChanged()
-	profile = Core.db.profile
+function Module:UpdateSettingsPointer(newSettings)
+	profile = newSettings
 end
 
 function Module:LoadSettings()
+	if not self:IsEnabled() then return end
 	local c = profile.resource
 	local _,class = UnitClass("player")
 	if class == "PALADIN" then
@@ -104,7 +106,10 @@ local function takeoverFrame(self, child, layerDiff, p1, p2, p3, p4, p5)
 		child:SetFrameLevel(self:GetFrameLevel() + layerDiff)
 
 		u.originalScale = child:GetScale()
-		local defaultScale = Core.db.defaults.profile.player.scale
+		local defaultScale = self:GetScale()
+		if self.settings then
+			defaultScale = getmetatable(self.settings).__index.scale
+		end
 		child:SetScale(1 / defaultScale)
 
 		u.originalPoint = {child:GetPoint(1)}
@@ -206,9 +211,6 @@ end
 
 function Module:OnInitialize()
 	self.OnInitialize = nil
-	self:ProfileChanged()
-	Core:RegisterForProfileChange(self, "ProfileChanged")
-
 	oUF = Core.oUF
 end
 

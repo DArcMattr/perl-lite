@@ -18,8 +18,6 @@ Addon.L = L
 Addon.oUF = _addonScope.oUF; assert(Addon.oUF, _addonName .. " was unable to locate oUF.")
 Addon.path = [[Interface\Addons\]].._addonName..[[\]]
 Addon.texturePath = Addon.path..[[textures\]]
-
-local profile
 --}}}
 --{{{ upvalues
 -- GLOBALS: CreateFrame
@@ -50,62 +48,28 @@ Addon.defaults = {
 			runes = true,
 			totems = true,
 		},
-		player = {
-			scale = 0.9,
-			attachPoint = "TOPLEFT",
-			attachX = 22,
-			attachY = -22,
-		},
-		pet = {
-			scale = 0.7,
-			attachPoint = "TOPLEFT",
-			attachX = 128,
-			attachY = -75,
-		},
-		target = {
-			scale = 0.8,
-			attachPoint = "TOP",
-			attachX = -177,
-			attachY = -22,
-		},
-		targettarget = {
-			scale = 0.7,
-			enabled = false,
-			attachPoint = "TOP",
-			attachX = -15,
-			attachY = -22,
-		},
-		focus = {
-			scale = 0.8,
-			attachPoint = "LEFT",
-			attachX = 256,
-			attachY = 148,
-		},
-		focustarget = {
-			scale = 0.7,
-			enabled = false,
-			attachPoint = "LEFT",
-			attachX = 450,
-			attachY = 151,
-		},
-		party = {
-			scale = 0.8,
-			attachPoint = "TOPLEFT",
-			attachX = 0,
-			attachY = -140,
-		},
 	}
 }
 
-function Addon:ProfileChanged()
-	profile = self.db.profile
+function Addon:UpdateAllSettingsPointers()
+	local profile = self.db.profile
+	for _,mod in self:IterateModules() do
+		local update = mod.UpdateSettingsPointer
+		if update then update(mod, profile) end
+	end
 end
 
-function Addon:RegisterForProfileChange(module, method)
-	self.db.RegisterCallback(module, "OnProfileChanged", method)
-	self.db.RegisterCallback(module, "OnProfileCopied", method)
-	self.db.RegisterCallback(module, "OnProfileReset", method)
-	self.db.RegisterCallback(module, "OnProfileDeleted", method)
+function Addon:LoadAllSettings()
+	-- self:LoadSettings() -- we have no settings in Core yet
+	for _,mod in self:IterateModules() do
+		local loader = mod.LoadSettings
+		if loader then loader(mod) end
+	end
+end
+
+function Addon:ProfileChanged()
+	self:UpdateAllSettingsPointers()
+	self:LoadAllSettings()
 end
 
 function Addon:OnInitialize()
@@ -114,8 +78,11 @@ function Addon:OnInitialize()
 	local savedVarName = GetAddOnMetadata(_addonName, "X-SavedVariables")
 	_G[savedVarName] = _G[savedVarName] or { dbversion = DBVERSION }
 	self.db = LibStub("AceDB-3.0"):New(_G[savedVarName], self.defaults, "Default")
-	self:ProfileChanged()
-	self:RegisterForProfileChange(self, "ProfileChanged")
+
+	self:UpdateAllSettingsPointers()
+	self.db.RegisterCallback(self, "OnProfileChanged", "ProfileChanged")
+	self.db.RegisterCallback(self, "OnProfileCopied", "ProfileChanged")
+	self.db.RegisterCallback(self, "OnProfileReset", "ProfileChanged")
 
 	do
 		local _, _addonTitle = GetAddOnInfo(_addonName)
