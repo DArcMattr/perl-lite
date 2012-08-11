@@ -389,6 +389,10 @@ end
 Module.valMaxFormatters["-missing or 0"] = function(fontString, val, maxVal)
 	return fontString:SetFormattedText("%d", (val - maxVal))
 end
+
+Module.valMaxFormatters["val%"] = function(fontString, val, maxVal)
+	return fontString:SetFormattedText("%d%%", (100 * val / maxVal))
+end
 --}}}
 
 local HealthOverride = function(self, event, unit, powerType)
