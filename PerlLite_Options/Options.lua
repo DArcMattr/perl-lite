@@ -22,7 +22,7 @@ local profile
 -- GLOBALS: LibStub
 -- GLOBALS: tremove
 local UnitClass = UnitClass
-local math_round = math.round
+local floor = floor
 local select = select
 --}}}
 
@@ -39,7 +39,7 @@ function Module:CloseOptions()
 end
 
 local function normalize255(n)
-	local val = math_round(n * 255)
+	local val = floor(n*255 + 0.5)
 	return val
 end
 
