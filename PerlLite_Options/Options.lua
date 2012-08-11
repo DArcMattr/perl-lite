@@ -92,7 +92,7 @@ local function generic_set_style(info, val)
 			return
 		end
 	end
-	local frame = (style == "party") and Core.Layout.partyHeader or Core.oUF.units[style]
+	local frame = (style:match("^party")) and Core.Layout.partyHeader or Core.oUF.units[style]
 	if frame then
 		frame:Layout()
 		frame:UpdateAllElements()
@@ -174,7 +174,9 @@ do --{{{ Module:MakeSectionArgs()
 		set = function(info, val)
 			local style = info[#info-1]
 			generic_set_style(info, val)
-			Core.Movable:RestorePosition(style)
+			if style ~= "partypet" and style ~= "partytarget" then
+				Core.Movable:RestorePosition(style)
+			end
 		end,
 	}
 	-- alpha = 216,
@@ -337,7 +339,7 @@ do --{{{ Module:MakeSectionArgs()
 	local nameW = { order = nextOrder(),
 		type = "range",
 		name = "Name Width",
-		min = 120, max = 200, step = 1,
+		min = 50, max = 200, step = 1,
 	}
 	-- nameH = 24,
 	local nameH = { order = nextOrder(),
@@ -349,7 +351,7 @@ do --{{{ Module:MakeSectionArgs()
 	local statsW = { order = nextOrder(),
 		type = "range",
 		name = "Stats Width",
-		min = 120, max = 200, step = 1,
+		min = 50, max = 200, step = 1,
 	}
 	-- statsTopPadding = -2,
 	local statsTopPadding = { order = nextOrder(),
@@ -695,6 +697,7 @@ function Module:OnInitialize()
 	options.args.targettarget = self:MakeSection(6, "TargetTarget")
 	options.args.focustarget = self:MakeSection(7, "FocusTarget")
 	options.args.party = self:MakeSection(8, "Party")
+	options.args.partypet = self:MakeSection(9, "PartyPet")
 	options.args.profile = LibStub("AceDBOptions-3.0"):GetOptionsTable(Core.db) -- Ace3 Profiles
 
 	-- Remove any stub in the Interface options, before adding the real one.
