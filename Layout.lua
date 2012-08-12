@@ -229,8 +229,9 @@ stylePrototypes = {
 		combatFeedback = true,
 		embedLevelAndClassIcon = true,
 		pvpIcon = "RIGHT",
-		pvpIconSize = 24,
-		pvpIconX = -7,
+		pvpIconSize = 23.5,
+		pvpIconX = -8,
+		pvpIconY = -0.5,
 		leaderIcon = "TOPLEFT",
 		leaderIconX = 18,
 		masterLooterIcon = "TOPLEFT",
@@ -255,7 +256,27 @@ stylePrototypes = {
 		statTags = false,
 		healthH = 13,
 		healthFormat = "val%",
-		powerH = 0, -- FIXME
+		powerH = 0,
+	},
+	partytarget = {
+		_inherits = false,
+		alpha = 216,
+		scale = 1,
+		pvpIcon = "TOPLEFT",
+		pvpIconSize = 21,
+		pvpIconX = 7.5,
+		pvpIconY = -10.5,
+		pvpTimer = false,
+		raidIcon = "RIGHT",
+		raidIconSize = 16,
+		raidIconX = 1,
+		raidIconY = 0,
+		width = 120,
+		nameH = 10,
+		nameFontSize = 10,
+		healthH = 7,
+		healthFontSize = 10,
+		healthFormat = "val%",
 	},
 }
 --}}} style data
@@ -271,7 +292,14 @@ do
 	for k,proto in next, stylePrototypes do
 		proto._style = k -- so a style knows its own name
 		proto._indexme = { __index = proto }
-		local meta = proto._inherits and { __index=stylePrototypes[proto._inherits] } or indexesBasicStyle
+		local meta
+		if proto._inherits then
+			meta = { __index=stylePrototypes[proto._inherits] }
+		elseif proto._inherits == false then
+			meta = complainsInvalidStyleProperty
+		else
+			meta = indexesBasicStyle
+		end
 		setmetatable(proto, meta)
 	end
 --}}} style init
@@ -696,6 +724,11 @@ local function UpdateFrameGradient(frame)
 	end
 end
 
+local function createFrameIcon(frame, layer)
+	local parent = frame.NameFrame or frame
+	return parent:CreateTexture(nil, layer)
+end
+
 local pointFlipH = {
 	-- left -> right
 	["TOPLEFT"] = "TOPRIGHT",
@@ -724,12 +757,12 @@ end
 local function LayoutPvPIcon(self, c)
 	if c.pvpIcon then
 		if not self.PvP then
-			self.PvP = self.NameFrame:CreateTexture(nil, "OVERLAY")
+			self.PvP = createFrameIcon(self, "OVERLAY")
 			self.PvP:SetTexCoord(0, 42/64, 0, 42/64) -- icon is 42x42 in a 64x64 file
 		end
 		self:EnableElement("PvP")
 		self.PvP:SetSize(c.pvpIconSize, c.pvpIconSize)
-		self.PvP:SetPoint("CENTER", self.NameFrame, c.pvpIcon, c.pvpIconX, c.pvpIconY)
+		self.PvP:SetPoint("CENTER", self.PvP:GetParent(), c.pvpIcon, c.pvpIconX, c.pvpIconY)
 	elseif self.PvP then
 		self:DisableElement("PvP")
 		self.PvP:Hide()
@@ -751,11 +784,11 @@ end
 local function LayoutRaidIcon(self, c)
 	if c.raidIcon then
 		if not self.RaidIcon then
-			self.RaidIcon = self.NameFrame:CreateTexture(nil, "OVERLAY")
+			self.RaidIcon = createFrameIcon(self, "OVERLAY")
 		end
 		self:EnableElement("RaidIcon")
 		self.RaidIcon:SetSize(c.raidIconSize, c.raidIconSize)
-		self.RaidIcon:SetPoint("CENTER", self.NameFrame, c.raidIcon, c.raidIconX, c.raidIconY)
+		self.RaidIcon:SetPoint("CENTER", self.RaidIcon:GetParent(), c.raidIcon, c.raidIconX, c.raidIconY)
 	elseif self.RaidIcon then
 		self:DisableElement("RaidIcon")
 		self.RaidIcon:Hide()
@@ -765,11 +798,11 @@ end
 local function LayoutLeaderIcon(self, c)
 	if c.leaderIcon then
 		if not self.Leader then
-			self.Leader = self.NameFrame:CreateTexture(nil, "OVERLAY")
+			self.Leader = createFrameIcon(self, "OVERLAY")
 		end
 		self:EnableElement("Leader")
 		self.Leader:SetSize(c.leaderIconSize, c.leaderIconSize)
-		self.Leader:SetPoint("CENTER", self.NameFrame, c.leaderIcon, c.leaderIconX, c.leaderIconY)
+		self.Leader:SetPoint("CENTER", self.Leader:GetParent(), c.leaderIcon, c.leaderIconX, c.leaderIconY)
 	elseif self.Leader then
 		self:DisableElement("Leader")
 		self.Leader:Hide()
@@ -779,11 +812,11 @@ end
 local function LayoutMasterLooterIcon(self, c)
 	if c.masterLooterIcon then
 		if not self.MasterLooter then
-			self.MasterLooter = self.NameFrame:CreateTexture(nil, "OVERLAY")
+			self.MasterLooter = createFrameIcon(self, "OVERLAY")
 		end
 		self:EnableElement("MasterLooter")
 		self.MasterLooter:SetSize(c.masterLooterIconSize, c.masterLooterIconSize)
-		self.MasterLooter:SetPoint("CENTER", self.NameFrame, c.masterLooterIcon, c.masterLooterIconX, c.masterLooterIconY)
+		self.MasterLooter:SetPoint("CENTER", self.MasterLooter:GetParent(), c.masterLooterIcon, c.masterLooterIconX, c.masterLooterIconY)
 	elseif self.MasterLooter then
 		self:DisableElement("MasterLooter")
 		self.MasterLooter:Hide()
@@ -793,11 +826,11 @@ end
 local function LayoutCombatIcon(self, c)
 	if c.combatIcon then
 		if not self.Combat then
-			self.Combat = self.NameFrame:CreateTexture(nil, "OVERLAY")
+			self.Combat = createFrameIcon(self, "OVERLAY")
 			self.Combat:SetTexture([[Interface\CharacterFrame\UI-StateIcon]])
 			self.Combat:SetTexCoord(32/64, 64/64, 0/64, 32/64)
 			self.Combat.Override = CombatOverride
-			self.Resting = self.NameFrame:CreateTexture(nil, "OVERLAY")
+			self.Resting = createFrameIcon(self, "OVERLAY")
 			self.Resting:SetTexture([[Interface\CharacterFrame\UI-StateIcon]])
 			self.Resting:SetTexCoord(0/64, 32/64, 0/64, 32/64)
 			self.Resting.Override = RestingOverride
@@ -805,9 +838,9 @@ local function LayoutCombatIcon(self, c)
 		self:EnableElement("Combat")
 		self:EnableElement("Resting")
 		self.Combat:SetSize(c.combatIconSize, c.combatIconSize)
-		self.Combat:SetPoint("CENTER", self.NameFrame, c.combatIcon, c.combatIconX, c.combatIconY)
+		self.Combat:SetPoint("CENTER", self.Combat:GetParent(), c.combatIcon, c.combatIconX, c.combatIconY)
 		self.Resting:SetSize(c.combatIconSize, c.combatIconSize)
-		self.Resting:SetPoint("CENTER", self.NameFrame, c.combatIcon, c.combatIconX, c.combatIconY)
+		self.Resting:SetPoint("CENTER", self.Resting:GetParent(), c.combatIcon, c.combatIconX, c.combatIconY)
 	elseif self.Combat then
 		self:DisableElement("Combat")
 		self.Combat:Hide()
@@ -1406,6 +1439,11 @@ local function sizeForLayout(c, partyPositions)
 	end
 end
 
+local function sizeForMiniLayout(c)
+	local height = 4 + c.nameH + 2 + c.healthH + 5
+	return c.width, height
+end
+
 local Layout = function(self)
 	local c = self.settings
 
@@ -1484,6 +1522,57 @@ local Layout = function(self)
 	LayoutCastbar(self, c)
 end
 
+local MiniLayout = function(self)
+	local c = self.settings
+	local alpha = c.alpha
+	self:SetAlpha(alpha / 255)
+	self:SetSize(sizeForMiniLayout(c))
+
+	if not self:GetBackdrop() then
+		self:SetBackdrop(backdrop_gray125)
+		self:SetBackdropColor(0, 0, 0, 1)
+		self:SetBackdropBorderColor(.5, .5, .5, 1)
+	end
+	UpdateFrameGradient(self)
+
+	local Name = self.Name
+	if not Name then
+		Name = self:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+		self.Name = Name
+		Name:SetPoint("TOPLEFT", 3, -4)
+		Name:SetPoint("TOPRIGHT", -3, -4)
+		Name:SetJustifyH("CENTER")
+		Name:SetTextColor(1, 1, 1)
+		self:Tag(Name, "[name]")
+	end
+	Name:SetHeight(c.nameH)
+	Name:SetFont(GameFontNormal:GetFont(), c.nameFontSize)
+
+	local Health = self.Health
+	if not Health then
+		Health = self._health
+		self.Health = Health
+		self._health = nil
+		Health:SetPoint("BOTTOMLEFT", 5, 5)
+		Health:SetPoint("BOTTOMRIGHT", -5, 5)
+
+		Health.frequentUpdates = true
+		Health.colorSmooth = true
+		Health.Override = HealthOverride
+		self:EnableElement("Health")
+	end
+	UpdateBarTextures(Health)
+	Health.bg:SetDrawLayer("OVERLAY", 1)
+	Health:GetStatusBarTexture():SetDrawLayer("OVERLAY", 2)
+	Health.text.formatValMax = Module.valMaxFormatters[c.healthFormat]
+	Health.text:SetFont(GameFontNormal:GetFont(), c.healthFontSize)
+	Health:SetHeight(c.healthH)
+
+	LayoutPvPIcon(self, c)
+	LayoutRaidIcon(self, c)
+	-- LayoutCombatIcon(self, c)
+end
+
 local eliteTypeDisplay = {
 	worldboss = "Boss",
 	rare = "Rare",
@@ -1549,6 +1638,16 @@ local function LayoutOnce_OnUpdate(nameFrame)
 	self:UpdateAllElements()
 end
 
+local function MiniLayoutOnce_OnUpdate(_health)
+	_health:SetScript("OnUpdate", nil)
+	local self = _health:GetParent()
+
+	self.colors = Module.colors
+	self.Layout = MiniLayout
+	self:Layout()
+	self:UpdateAllElements()
+end
+
 local function noop() end
 local Shared = function(self, unit, isSingle)
 	self.menu = menu
@@ -1568,8 +1667,13 @@ local Shared = function(self, unit, isSingle)
 	if isSingle then
 		self:SetSize(sizeForLayout(self.settings))
 	end
-	self.NameFrame = CreateBorderedChildFrame(self)
-	self.NameFrame:SetScript("OnUpdate", LayoutOnce_OnUpdate)
+	if unit == "partytarget" then
+		self._health = CreateStatusBar(self)
+		self._health:SetScript("OnUpdate", MiniLayoutOnce_OnUpdate)
+	else
+		self.NameFrame = CreateBorderedChildFrame(self)
+		self.NameFrame:SetScript("OnUpdate", LayoutOnce_OnUpdate)
+	end
 end
 
 function Module:PLAYER_FLAGS_CHANGED(event, unit)
@@ -1664,7 +1768,7 @@ function Module:CreatePartyHeader()
 	header.UpdateAllElements = function(self, ...)
 		for i = 1,#self do
 			self[i]:UpdateAllElements(...)
-			-- self[i].Target:UpdateAllElements(...)
+			self[i].Target:UpdateAllElements(...)
 			self[i].Pet:UpdateAllElements(...)
 		end
 	end
@@ -1673,8 +1777,8 @@ function Module:CreatePartyHeader()
 		local iw, ih, tx, ty, px, py = sizeForLayout(c, true)
 
 		-- target: width, height, scale, attach points
-		local tw, th = 120, 28 -- FIXME
-		local ts = 1 -- FIXME
+		local tw, th = sizeForMiniLayout(profile.partytarget)
+		local ts = profile.partytarget.scale
 		local ta1, ta2 = "BOTTOMLEFT", "TOPLEFT"
 		if not c.leftToRight then
 			ta1 = pointFlipH[ta1]
@@ -1694,10 +1798,10 @@ function Module:CreatePartyHeader()
 
 		for i = 1,#self do
 			self[i]:Layout()
-			-- self[i].Target:SetScale(ts)
-			-- self[i].Target:ClearAllPoints()
-			-- self[i].Target:SetPoint(ta1, self, ta2, tx / ts, ty / ts)
-			-- self[i].Target:Layout()
+			self[i].Target:SetScale(ts)
+			self[i].Target:ClearAllPoints()
+			self[i].Target:SetPoint(ta1, self, ta2, tx / ts, ty / ts)
+			self[i].Target:Layout()
 			self[i].Pet:SetScale(ps)
 			self[i].Pet:ClearAllPoints()
 			self[i].Pet:SetPoint(pa1, self, pa2, px / ps, py / ps)

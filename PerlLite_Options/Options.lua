@@ -146,17 +146,17 @@ do --{{{ Module:MakeSectionArgs()
 		t[name.."Size"] = { order = nextOrder(),
 			type = "range",
 			name = cname.." Size",
-			min = 10, max = 35, step = 1,
+			min = 10, max = 35, bigStep = 0.5,
 		}
 		t[name.."X"] = { order = nextOrder(),
 			type = "range",
 			name = cname.." X",
-			min = -40, max = 40, step = 1,
+			min = -40, max = 40, bigStep = 0.5,
 		}
 		t[name.."Y"] = { order = nextOrder(),
 			type = "range",
 			name = cname.." Y",
-			min = -40, max = 40, step = 1,
+			min = -40, max = 40, bigStep = 0.5,
 		}
 	end
 
