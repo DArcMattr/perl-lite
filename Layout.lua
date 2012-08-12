@@ -4,14 +4,19 @@
 	All Rights Reserved.
 ---------------------------------------------------------------------------]]
 --{{{ top
-local _addonName = ...
+local _addonName, _addonScope = ...
 
 local Core = LibStub("AceAddon-3.0"):GetAddon(_addonName)
 local Module = Core:NewModule("Layout", "AceEvent-3.0")
 Core.Layout = Module
 local L = Core.L
-local oUF
 local profile
+
+local oUF = _addonScope.oUF or oUF
+_addonScope.oUF = oUF
+assert(oUF, _addonName .. " was unable to locate oUF.")
+
+local __OUF_1_5__ = not not oUF.units
 --}}}
 --{{{ upvalues
 -- GLOBALS: CreateFrame
@@ -331,8 +336,8 @@ function Module:UpdateSettingsPointer(newSettings)
 		profile[styleName] = profile[styleName] or {}
 		setmetatable(profile[styleName], proto._indexme)
 	end
-	if oUF then
-		for _,frame in next, oUF.units do
+	for _,frame in next, Core.frames do
+		if frame.settings then
 			frame.settings = profile[frame.stylekey]
 		end
 	end
@@ -518,8 +523,12 @@ local HealthOverride = function(self, event, unit, powerType)
 		local t = self.colors.gray
 		r, g, b = t[1], t[2], t[3]
 	elseif health.colorSmooth then
-		local perc = (maxVal ~= 0) and (val / maxVal) or 0
-		r, g, b = self.ColorGradient(perc, unpack(health.smoothGradient or self.colors.smooth))
+		if __OUF_1_5__ then
+			local perc = (maxVal ~= 0) and (val / maxVal) or 0
+			r, g, b = self.ColorGradient(perc, unpack(health.smoothGradient or self.colors.smooth))
+		else
+			r, g, b = self.ColorGradient(val, maxVal, unpack(health.smoothGradient or self.colors.smooth))
+		end
 	elseif health.colorHealth then
 		local t = self.colors.health
 		r, g, b = t[1], t[2], t[3]
@@ -1677,7 +1686,7 @@ local Shared = function(self, unit, isSingle)
 end
 
 function Module:PLAYER_FLAGS_CHANGED(event, unit)
-	local unitFrame = oUF.units[unit]
+	local unitFrame = Core.frames[unit]
 	if unitFrame and unitFrame:IsShown() then
 		unitFrame.Health:ForceUpdate()
 	end
@@ -1685,7 +1694,6 @@ end
 
 function Module:InitOUFSettings()
 	self.InitOUFSettings = nil
-	oUF = Core.oUF
 	self.colors = setmetatable({
 		health = {0, 1, 0},
 		gray = {0.5, 0.5, 0.5},
@@ -1711,13 +1719,6 @@ function Module:InitOUFSettings()
 		},
 		nameDefault = { 0.5, 0.5, 1 },
 	}, {__index = oUF.colors})
-
-	-- Tags. FIXME: this is just an example
-	oUF.Tags['perllite:Foo'] = function(unit)
-		if(not UnitIsConnected(unit) or UnitIsDead(unit) or UnitIsGhost(unit)) then return end
-		return "FOO"..UnitHealth(unit) .. '/' .. UnitHealthMax(unit)
-	end
-	oUF.TagEvents['perllite:Foo'] = oUF.TagEvents.missinghp
 end
 
 local partyConfigSnippit = [[
@@ -1744,6 +1745,8 @@ local partyConfigSnippit = [[
 		self:SetScale(s)
 		self:ClearAllPoints()
 		self:SetPoint(attach, parent, attachTo, xOff / s, yOff / s)
+	else
+		header:CallMethod("newChildSpawned", self:GetName())
 	end
 ]]
 function Module:CreatePartyHeader()
@@ -1754,7 +1757,18 @@ function Module:CreatePartyHeader()
 		"template", _addonName.."_PartyTemplate",
 		"oUF-initialConfigFunction", partyConfigSnippit
 	)
-	self.partyHeader = header
+	Core.frames.party = header
+	header.newChildSpawned = function(self, newChildName)
+		for i = #self,1,-1 do
+			local child = self[i]
+			if child:GetName() == newChildName then
+				Core.frames["party"..i] = child
+				Core.frames["party"..i.."target"] = child.Target
+				Core.frames["partypet"..i] = child.Pet
+				break
+			end
+		end
+	end
 	header.Disable = function(self)
 		for i = 1,#self do
 			self[i]:Disable()
@@ -1852,7 +1866,7 @@ function Module:CreatePartyHeader()
 end
 
 function Module:EnableOrDisableFrame(unit)
-	local frame = (unit == "party") and self.partyHeader or oUF.units[unit]
+	local frame = Core.frames[unit]
 	if profile[unit].enabled then
 		if frame then
 			frame:Enable()
@@ -1865,6 +1879,7 @@ function Module:EnableOrDisableFrame(unit)
 				local cunit = unit:gsub("target","Target"):gsub("^%l", strupper)
 				oUF:SetActiveStyle(_addonName)
 				frame = oUF:Spawn(unit, _addonName.."_"..cunit)
+				Core.frames[unit] = frame
 				Core.Movable:RegisterMovable(frame, unit)
 			end
 		end
@@ -1894,5 +1909,7 @@ end
 function Module:OnDisable()
 end
 --@do-not-package@ --{{{
+
+Core.oUF = oUF
 
 --}}} --@end-do-not-package@

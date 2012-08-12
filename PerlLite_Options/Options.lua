@@ -92,7 +92,7 @@ local function generic_set_style(info, val)
 			return
 		end
 	end
-	local frame = (style:match("^party")) and Core.Layout.partyHeader or Core.oUF.units[style]
+	local frame = (style:match("^party")) and Core.frames.party or Core.frames[style]
 	if frame then
 		frame:Layout()
 		frame:UpdateAllElements()
