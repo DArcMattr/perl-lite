@@ -51,6 +51,7 @@ local _G = _G
 local assert = assert
 local floor = floor
 local format = format
+local geterrorhandler = geterrorhandler
 local max = max
 local next = next
 local rawget = rawget
@@ -240,6 +241,22 @@ stylePrototypes = {
 		healthH = 21,
 		portraitPadding = -2,
 	},
+	partypet = {
+		scale = 0.7,
+		level = false,
+		classIcon = false,
+		pvpIcon = false,
+		nameW = 80,
+		nameFontSize = 10,
+		nameLeft = true,
+		nameH = 20,
+		statsW = 80,
+		statsTopPadding = -4,
+		statTags = false,
+		healthH = 13,
+		healthFormat = "val%",
+		powerH = 0, -- FIXME
+	},
 }
 --}}} style data
 --{{{ style init
@@ -389,6 +406,10 @@ end
 Module.valMaxFormatters["-missing or 0"] = function(fontString, val, maxVal)
 	return fontString:SetFormattedText("%d", (val - maxVal))
 end
+
+Module.valMaxFormatters["val%"] = function(fontString, val, maxVal)
+	return fontString:SetFormattedText("%d%%", (100 * val / maxVal))
+end
 --}}}
 
 local HealthOverride = function(self, event, unit, powerType)
@@ -487,7 +508,9 @@ local HealthOverride = function(self, event, unit, powerType)
 	if (not not tag) ~= (not not health.wasForcedGray) then
 		-- Grayness status changed.
 		health.wasForcedGray = (not not tag)
-		self.Power:ForceUpdate()
+		if self.Power and self.Power:IsShown() then
+			self.Power:ForceUpdate()
+		end
 	end
 end
 
@@ -698,40 +721,6 @@ local function attach(self, frame1name, point1, frame2name, point2, xOff, yOff, 
 	frame1:SetPoint(point1, frame2, point2, xOff, yOff)
 end
 
-local function DoNameFrame(unitFrame)
-	-- NameFrame
-	local NameFrame = unitFrame.NameFrame
-	local Name = NameFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	unitFrame.Name = Name
-	Name:SetPoint("BOTTOMRIGHT", NameFrame, 0, 1)
-	Name:SetTextColor(1, 1, 1)
-	unitFrame:Tag(Name, "[name]")
-end
-
-local function DoStatsFrame(unitFrame)
-	-- StatsFrame
-	local StatsFrame = CreateBorderedChildFrame(unitFrame)
-	unitFrame.StatsFrame = StatsFrame
-
-	-- Health
-	local Health = CreateStatusBar(StatsFrame)
-	unitFrame.Health = Health
-	Health:SetPoint("TOP", StatsFrame, 0, -5)
-	Health:SetPoint("LEFT", StatsFrame, 5, 0)
-
-	Health.frequentUpdates = true
-	Health.colorSmooth = true
-	Health.Override = HealthOverride
-
-	local Power = CreateStatusBar(StatsFrame)
-	unitFrame.Power = Power
-	Power:SetPoint("TOPRIGHT", Health, "BOTTOMRIGHT", 0, 0)
-	Power:SetPoint("BOTTOMLEFT", StatsFrame, 5, 5)
-
-	Power.frequentUpdates = true
-	Power.Override = PowerOverride
-end
-
 local function LayoutPvPIcon(self, c)
 	if c.pvpIcon then
 		if not self.PvP then
@@ -859,10 +848,12 @@ local function LayoutPortrait(self, c)
 			if c.portrait then
 				if c.portrait == "3d" then
 					local _3d = self.PortraitFrame._3d or CreateFrameSameLevel("PlayerModel", nil, self.PortraitFrame)
+					self.PortraitFrame._3d = _3d
 					_3d.PostUpdate = PortraitPostUpdate3D
 					self.Portrait = _3d
 				else
 					local _2d = self.PortraitFrame._2d or self.PortraitFrame:CreateTexture(nil, "ARTWORK")
+					self.PortraitFrame._2d = _2d
 					self.Portrait = _2d
 				end
 				self:EnableElement("Portrait")
@@ -987,7 +978,13 @@ local function LayoutRaceFrame(self, c)
 	end
 end
 
-local function LayoutNameAndStats(self, c)
+local function LayoutName(self, c)
+	if not self.Name then
+		self.Name = self.NameFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+		self.Name:SetPoint("BOTTOMRIGHT", self.NameFrame, 0, 1)
+		self.Name:SetTextColor(1, 1, 1)
+		self:Tag(self.Name, "[name]")
+	end
 	UpdateFrameGradient(self.NameFrame)
 	self.NameFrame:ClearAllPoints()
 	self.NameFrame:SetSize(c.nameW, c.nameH)
@@ -999,42 +996,87 @@ local function LayoutNameAndStats(self, c)
 		self.Name:SetPoint("TOPLEFT")
 		self.Name:SetJustifyH("CENTER")
 	end
+end
 
-	UpdateFrameGradient(self.StatsFrame)
-	self.StatsFrame:ClearAllPoints()
-	self.StatsFrame:SetSize(c.statsW, c.healthH + (self.Power:IsShown() and c.powerH or 0) + 10)
+local function LayoutStats(self, c)
+	local StatsFrame, Health, Power = self.StatsFrame, self.Health, self.Power
 
-	local Health, Power = self.Health, self.Power
-	UpdateBarTextures(self.Health)
+	-- Stats & Health
+	if not StatsFrame then
+		StatsFrame = CreateBorderedChildFrame(self)
+		self.StatsFrame = StatsFrame
+
+		Health = CreateStatusBar(StatsFrame)
+		self.Health = Health
+		Health:SetPoint("TOP", StatsFrame, 0, -5)
+		Health:SetPoint("LEFT", StatsFrame, 5, 0)
+
+		Health.frequentUpdates = true
+		Health.colorSmooth = true
+		Health.Override = HealthOverride
+
+		self:EnableElement("Health")
+	end
+	UpdateBarTextures(Health)
 	Health.text.formatValMax = Module.valMaxFormatters[c.healthFormat]
 	Health.text:SetFont(GameFontNormal:GetFont(), c.healthFontSize)
 	Health:SetHeight(c.healthH)
-	UpdateBarTextures(Power)
-	Power.text.formatValMax = Module.valMaxFormatters[c.powerFormat]
-	Power.text:SetFont(GameFontNormal:GetFont(), c.powerFontSize)
 
+	-- Power
+	if c.powerH > 0 then
+		if not Power then
+			Power = CreateStatusBar(StatsFrame)
+			self.Power = Power
+			Power:SetPoint("TOPRIGHT", Health, "BOTTOMRIGHT", 0, 0)
+			Power:SetPoint("BOTTOMLEFT", StatsFrame, 5, 5)
+			Power.frequentUpdates = true
+			Power.Override = PowerOverride
+		end
+		self:EnableElement("Power")
+		UpdateBarTextures(Power)
+		Power.text.formatValMax = Module.valMaxFormatters[c.powerFormat]
+		Power.text:SetFont(GameFontNormal:GetFont(), c.powerFontSize)
+	elseif Power then
+		self:DisableElement("Power")
+		Power:Hide()
+	end
+
+	-- Tags
 	local attachX = -5
 	if c.statTags then
 		if not Health.tag then
 			Health.tag = Health._tag or MakeStatusBarTag(Health)
 			Health.tag:Show()
-			Power.tag = Power._tag or MakeStatusBarTag(Power)
-			Power.tag:Show()
 		end
 		Health.tag:SetFont(GameFontNormal:GetFont(), c.tagFontSize)
 		Health.tag:SetSize(c.statTagW, c.statTagH)
-		Power.tag:SetFont(GameFontNormal:GetFont(), c.tagFontSize)
-		Power.tag:SetSize(c.statTagW, c.statTagH)
+		if c.powerH > 0 then
+			if not Power.tag then
+				Power.tag = Power._tag or MakeStatusBarTag(Power)
+				Power.tag:Show()
+			end
+			Power.tag:SetFont(GameFontNormal:GetFont(), c.tagFontSize)
+			Power.tag:SetSize(c.statTagW, c.statTagH)
+		end
 		attachX = attachX - c.statTagWSpace
-	elseif Health.tag then
-		Health._tag = Health.tag
-		Health.tag:Hide()
-		Health.tag = nil
-		Power._tag = Power.tag
-		Power.tag:Hide()
-		Power.tag = nil
+	else
+		if Health.tag then
+			Health._tag = Health.tag
+			Health.tag:Hide()
+			Health.tag = nil
+		end
+		if Power and Power.tag then
+			Power._tag = Power.tag
+			Power.tag:Hide()
+			Power.tag = nil
+		end
 	end
-	Health:SetPoint("RIGHT", self.StatsFrame, attachX, 0)
+
+	-- Size & Layout of the StatsFrame
+	UpdateFrameGradient(StatsFrame)
+	StatsFrame:ClearAllPoints()
+	StatsFrame:SetSize(c.statsW, c.healthH + (Power and Power:IsShown() and c.powerH or 0) + 10)
+	Health:SetPoint("RIGHT", StatsFrame, attachX, 0)
 end
 
 local function LayoutHealPrediction(self, c)
@@ -1331,7 +1373,7 @@ local LayoutCastbar; do
 	end
 end
 
-local function sizeForLayout(c)
+local function sizeForLayout(c, partyPositions)
 	local extraWidth = 0
 	local statsWidth = c.statsW
 	local hasPortrait = c.portrait
@@ -1353,11 +1395,22 @@ local function sizeForLayout(c)
 	local nameStatsHeight = c.nameH + (c.healthH + c.powerH + 10) + c.statsTopPadding
 	local height = max(portraitHeight, nameStatsHeight)
 
-	return width, height
+	if partyPositions then
+		local targetx = extraWidth + c.nameW - 2
+		local targety = -c.nameH
+		local petx = extraWidth + statsWidth - 2
+		local pety = -(c.nameH + c.statsTopPadding)
+		return width, height, targetx, targety, petx, pety
+	else
+		return width, height
+	end
 end
 
 local Layout = function(self)
 	local c = self.settings
+
+	LayoutName(self, c)
+	LayoutStats(self, c)
 
 	-- Alphas. XPerl is weird about this. Nested frames get an alpha that combines with the main one, with some exceptions.
 	local alpha = c.alpha
@@ -1370,7 +1423,6 @@ local Layout = function(self)
 		self.StatsFrame:SetAlpha(1)
 	end
 
-	LayoutNameAndStats(self, c)
 	LayoutPortrait(self, c)
 	LayoutLevel(self, c)
 
@@ -1490,16 +1542,6 @@ local function LayoutOnce_OnUpdate(nameFrame)
 	nameFrame:SetScript("OnUpdate", nil)
 	local self = nameFrame:GetParent()
 
-	self.menu = menu
-	self:SetScript("OnEnter", UnitFrame_OnEnter)
-	self:SetScript("OnLeave", UnitFrame_OnLeave)
-	self:RegisterForClicks("AnyUp")
-
-	DoNameFrame(self)
-	DoStatsFrame(self)
-	self:EnableElement("Health")
-	self:EnableElement("Power")
-
 	self.colors = Module.colors
 	self.PostUpdate = PostUpdate
 	self.Layout = Layout
@@ -1509,7 +1551,16 @@ end
 
 local function noop() end
 local Shared = function(self, unit, isSingle)
-	self.settings = profile[unit] or profile.party
+	self.menu = menu
+	self:SetScript("OnEnter", UnitFrame_OnEnter)
+	self:SetScript("OnLeave", UnitFrame_OnLeave)
+	self:RegisterForClicks("AnyUp")
+
+	self.settings = profile[unit]
+	if not self.settings then
+		geterrorhandler()("no settings for unit '"..unit.."'")
+		return
+	end
 	self.stylekey = self.settings._style
 	self.Layout = noop
 
@@ -1565,6 +1616,137 @@ function Module:InitOUFSettings()
 	oUF.TagEvents['perllite:Foo'] = oUF.TagEvents.missinghp
 end
 
+local partyConfigSnippit = [[
+	local suffix = self:GetAttribute("unitsuffix")
+	local parent = self:GetParent()
+	local header = suffix and parent:GetParent() or parent
+	local attr = suffix or "initial"
+
+	local w = header:GetAttribute(attr.."-width")
+	if w == nil then
+		print("PerlLite: missing initialization for 'party"..(suffix or "").."' frame")
+		return
+	end
+	local h = header:GetAttribute(attr.."-height")
+	self:SetWidth(w)
+	self:SetHeight(h)
+
+	if suffix then
+		local s = header:GetAttribute(attr.."-scale")
+		local attach = header:GetAttribute(attr.."-attach")
+		local attachTo = header:GetAttribute(attr.."-attachTo")
+		local xOff = header:GetAttribute(attr.."-attachX")
+		local yOff = header:GetAttribute(attr.."-attachY")
+		self:SetScale(s)
+		self:ClearAllPoints()
+		self:SetPoint(attach, parent, attachTo, xOff / s, yOff / s)
+	end
+]]
+function Module:CreatePartyHeader()
+	oUF:SetActiveStyle(_addonName)
+	local header = oUF:SpawnHeader(_addonName.."_Party", nil, nil,
+		"showParty", true,
+		"yOffset", -23,
+		"template", _addonName.."_PartyTemplate",
+		"oUF-initialConfigFunction", partyConfigSnippit
+	)
+	self.partyHeader = header
+	header.Disable = function(self)
+		for i = 1,#self do
+			self[i]:Disable()
+		end
+	end
+	header.Enable = function(self)
+		for i = 1,#self do
+			self[i]:Enable()
+		end
+	end
+	header.UpdateAllElements = function(self, ...)
+		for i = 1,#self do
+			self[i]:UpdateAllElements(...)
+			-- self[i].Target:UpdateAllElements(...)
+			self[i].Pet:UpdateAllElements(...)
+		end
+	end
+	header.Layout = function(self)
+		local c = profile.party
+		local iw, ih, tx, ty, px, py = sizeForLayout(c, true)
+
+		-- target: width, height, scale, attach points
+		local tw, th = 120, 28 -- FIXME
+		local ts = 1 -- FIXME
+		local ta1, ta2 = "BOTTOMLEFT", "TOPLEFT"
+		if not c.leftToRight then
+			ta1 = pointFlipH[ta1]
+			ta2 = pointFlipH[ta2]
+			tx = -tx
+		end
+
+		-- pet: width, height, scale, attach points
+		local pw, ph = sizeForLayout(profile.partypet)
+		local ps = profile.partypet.scale
+		local pa1, pa2 = "TOPLEFT", "TOPLEFT"
+		if not c.leftToRight then
+			pa1 = pointFlipH[pa1]
+			pa2 = pointFlipH[pa2]
+			px = -px
+		end
+
+		for i = 1,#self do
+			self[i]:Layout()
+			-- self[i].Target:SetScale(ts)
+			-- self[i].Target:ClearAllPoints()
+			-- self[i].Target:SetPoint(ta1, self, ta2, tx / ts, ty / ts)
+			-- self[i].Target:Layout()
+			self[i].Pet:SetScale(ps)
+			self[i].Pet:ClearAllPoints()
+			self[i].Pet:SetPoint(pa1, self, pa2, px / ps, py / ps)
+			self[i].Pet:Layout()
+		end
+
+		-- The _ignore attribute is an optimization; it keeps the secure header from recomputing
+		-- everything when an attribute is set.
+		self:SetAttribute("_ignore", true)
+		self:SetAttribute("target-width", tw)
+		self:SetAttribute("target-height", th)
+		self:SetAttribute("target-scale", ts)
+		self:SetAttribute("target-attach", ta1)
+		self:SetAttribute("target-attachTo", ta2)
+		self:SetAttribute("target-attachX", tx)
+		self:SetAttribute("target-attachY", ty)
+		self:SetAttribute("pet-width", pw)
+		self:SetAttribute("pet-height", ph)
+		self:SetAttribute("pet-scale", ps)
+		self:SetAttribute("pet-attach", pa1)
+		self:SetAttribute("pet-attachTo", pa2)
+		self:SetAttribute("pet-attachX", px)
+		self:SetAttribute("pet-attachY", py)
+		self:SetAttribute("initial-width", iw)
+		self:SetAttribute("_ignore", false)
+		self:SetAttribute("initial-height", ih)
+
+		self.container:Layout()
+	end
+
+	local container = CreateFrame("Frame", nil, header:GetParent())
+	header.container = container
+	header:SetParent(container)
+	container.header = header
+	container.Layout = function(container)
+		local header = container.header
+		local w = header:GetAttribute("initial-width")
+		local h = header:GetAttribute("initial-height")
+		local yOffset = header:GetAttribute("yOffset")
+		container:SetSize(w, 4*h + 3*-yOffset)
+		if container.anchor then container.anchor:Resize() end
+	end
+	header:SetPoint("TOPLEFT")
+	Core.Movable:RegisterMovable(container, "party")
+
+	header:Layout()
+	header:Show()
+end
+
 function Module:EnableOrDisableFrame(unit)
 	local frame = (unit == "party") and self.partyHeader or oUF.units[unit]
 	if profile[unit].enabled then
@@ -1573,64 +1755,11 @@ function Module:EnableOrDisableFrame(unit)
 			frame:Layout()
 			frame:UpdateAllElements()
 		else
-			oUF:SetActiveStyle(_addonName)
 			if unit == "party" then
-				local iw, ih = sizeForLayout(profile.party)
-				frame = oUF:SpawnHeader(_addonName.."_Party", nil, "raid,party",
-					"showParty", true,
-					"yOffset", -23,
-					"initial-width", iw,
-					"initial-height", ih,
-					"oUF-initialConfigFunction", [[
-						local header = self:GetParent()
-						local w = header:GetAttribute("initial-width")
-						local h = header:GetAttribute("initial-height")
-						self:SetWidth(w)
-						self:SetHeight(h)
-					]]
-				)
-				self.partyHeader = frame
-				frame.Disable = function(self)
-					for i = 1,#self do
-						self[i]:Disable()
-					end
-				end
-				frame.Enable = function(self)
-					for i = 1,#self do
-						self[i]:Enable()
-					end
-				end
-				frame.Layout = function(self)
-					local iw, ih = sizeForLayout(profile.party)
-					self:SetAttribute("initial-width", iw)
-					self:SetAttribute("initial-height", ih)
-					self.container:Layout()
-					for i = 1,#self do
-						self[i]:Layout()
-					end
-				end
-				frame.UpdateAllElements = function(self, ...)
-					for i = 1,#self do
-						self[i]:UpdateAllElements(...)
-					end
-				end
-
-				frame.container = CreateFrame("Frame", nil, frame:GetParent())
-				frame:SetParent(frame.container)
-				frame.container.header = frame
-				frame.container.Layout = function(container)
-					local header = container.header
-					local w = header:GetAttribute("initial-width")
-					local h = header:GetAttribute("initial-height")
-					local yOffset = header:GetAttribute("yOffset")
-					container:SetSize(w, 4*h + 3*-yOffset)
-					if container.anchor then container.anchor:Resize() end
-				end
-				frame.container:Layout()
-				frame:SetPoint("TOPLEFT")
-				Core.Movable:RegisterMovable(frame.container, unit)
+				self:CreatePartyHeader()
 			else
 				local cunit = unit:gsub("target","Target"):gsub("^%l", strupper)
+				oUF:SetActiveStyle(_addonName)
 				frame = oUF:Spawn(unit, _addonName.."_"..cunit)
 				Core.Movable:RegisterMovable(frame, unit)
 			end
@@ -1661,9 +1790,5 @@ end
 function Module:OnDisable()
 end
 --@do-not-package@ --{{{
-
-function _G:PerlTest()
-	_G.b = _G.PerlLite_Target
-end
 
 --}}} --@end-do-not-package@

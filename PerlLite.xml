@@ -1,5 +1,24 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
 	<!-- Junk comment so I don't forget the comment syntax. :P -->
+	<Button name="PerlLite_PartyTemplate" inherits="SecureUnitButtonTemplate" hidden="true" virtual="true">
+		<Frames>
+			<Button parentKey="Pet" name="$parentPet" inherits="SecureUnitButtonTemplate" hidden="true">
+				<Attributes>
+					<Attribute name="unitsuffix" type="string" value="pet" />
+					<Attribute name="useparent-unit" type="boolean" value="true" />
+				</Attributes>
+			</Button>
+			<!--
+			<Button parentKey="Target" name="$parentTarget" inherits="SecureUnitButtonTemplate" hidden="true">
+				<Attributes>
+					<Attribute name="unitsuffix" type="string" value="target" />
+					<Attribute name="useparent-unit" type="boolean" value="true" />
+				</Attributes>
+			</Button>
+			-->
+		</Frames>
+	</Button>
+
 	<Script file="Locales.lua" />
 	<Script file="Core.lua" />
 	<Script file="Movable.lua" />
