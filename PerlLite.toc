@@ -8,7 +8,7 @@
 #@end-debug@
 
 ## DefaultState: enabled
-## OptionalDeps: !ClassColors, Ace3, LibWindow-1.1, Clique, oUF
+## OptionalDeps: !ClassColors, Ace3, LibSharedMedia-3.0, LibWindow-1.1, Clique, oUF
 ## SavedVariables: PerlLiteDB
 ## X-SavedVariables: PerlLiteDB
 
@@ -26,5 +26,9 @@ libs\LibSharedMedia-3.0\lib.xml
 libs\LibWindow-1.1\LibWindow-1.1.lua
 libs\oUF\oUF.xml
 #@end-no-lib-strip@
+
+#@debug@
+DEV\Dev_RunFirst.lua
+#@end-debug@
 
 PerlLite.xml

@@ -15,7 +15,6 @@ local Module = Core:NewModule("LayoutResource", "AceEvent-3.0")
 Module:SetEnabledState(false)
 Core.LayoutResource = Module
 local L = Core.L
-local oUF
 local profile
 
 local undo = {}
@@ -140,7 +139,7 @@ end
 
 function Module:FixHolyPower()
 	local pallybar = PaladinPowerBar
-	local player = oUF.units.player
+	local player = Core.frames.player
 	takeoverFrame(player, pallybar, -1, "TOP", player.StatsFrame, "BOTTOM", 0, 8)
 end
 
@@ -151,7 +150,7 @@ end
 
 function Module:FixSoulShards()
 	local shards = ShardBarFrame
-	local player = oUF.units.player
+	local player = Core.frames.player
 	takeoverFrame(player, shards, 0, "TOP", player.StatsFrame, "BOTTOM", 0, 1)
 end
 
@@ -162,7 +161,7 @@ end
 
 function Module:FixRunes()
 	local runes = RuneFrame
-	local player = oUF.units.player
+	local player = Core.frames.player
 	takeoverFrame(player, runes, 0, "TOPRIGHT", player.StatsFrame, "BOTTOMRIGHT", 4, 0)
 end
 
@@ -173,7 +172,7 @@ end
 
 function Module:FixEclipse()
 	local eclipse = EclipseBarFrame
-	local player = oUF.units.player
+	local player = Core.frames.player
 	takeoverFrame(player, eclipse, -1, "TOP", player.StatsFrame, "BOTTOM", 0, 6)
 end
 
@@ -185,7 +184,7 @@ end
 function Module:FixTotems()
 	local c = profile.resource
 	local totem = TotemFrame
-	local player = oUF.units.player
+	local player = Core.frames.player
 
 	local _,class = UnitClass("player")
 	if class == "PALADIN" or class == "WARLOCK" or class == "DEATHKNIGHT" then
@@ -211,11 +210,10 @@ end
 
 function Module:OnInitialize()
 	self.OnInitialize = nil
-	oUF = Core.oUF
 end
 
 function Module:OnEnable()
-	assert(oUF.units.player)
+	assert(Core.frames.player)
 	self:LoadSettings()
 end
 

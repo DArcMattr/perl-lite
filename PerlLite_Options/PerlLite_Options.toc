@@ -9,6 +9,7 @@
 
 ## DefaultState: enabled
 ## RequiredDeps: PerlLite
+## OptionalDeps: AceGUI-3.0-SharedMediaWidgets
 ## LoadOnDemand: 1
 
 #@no-lib-strip@
