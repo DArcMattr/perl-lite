@@ -8,14 +8,12 @@
 					<Attribute name="useparent-unit" type="boolean" value="true" />
 				</Attributes>
 			</Button>
-			<!--
 			<Button parentKey="Target" name="$parentTarget" inherits="SecureUnitButtonTemplate" hidden="true">
 				<Attributes>
 					<Attribute name="unitsuffix" type="string" value="target" />
 					<Attribute name="useparent-unit" type="boolean" value="true" />
 				</Attributes>
 			</Button>
-			-->
 		</Frames>
 	</Button>
 
