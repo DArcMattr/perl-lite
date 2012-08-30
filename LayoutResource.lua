@@ -23,7 +23,7 @@ local undo = {}
 local BEAR_FORM = BEAR_FORM
 local CAT_FORM = CAT_FORM
 local EclipseBarFrame = EclipseBarFrame
-local GetPrimaryTalentTree = GetPrimaryTalentTree -- FIXME: broken in MoP
+local GetSpecialization = GetSpecialization
 local GetShapeshiftFormID = GetShapeshiftFormID
 local MOONKIN_FORM = MOONKIN_FORM
 local PaladinPowerBar = PaladinPowerBar
@@ -63,13 +63,13 @@ function Module:LoadSettings()
 		self:FixTotems()
 		if class == "DRUID" then
 			self:RegisterEvent("UPDATE_SHAPESHIFT_FORM", "FixTotems")
-			self:RegisterEvent("PLAYER_TALENT_UPDATE", "FixTotems")
+			self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED", "FixTotems")
 		end
 	else
 		self:UnfixTotems()
 		if class == "DRUID" then
 			self:UnregisterEvent("UPDATE_SHAPESHIFT_FORM")
-			self:UnregisterEvent("PLAYER_TALENT_UPDATE")
+			self:UnregisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 		end
 	end
 end
@@ -192,7 +192,7 @@ function Module:FixTotems()
 		takeoverFrame(player, totem, 1, "TOPLEFT", player.StatsFrame, "BOTTOM", -92, 6)
 	elseif class == "DRUID" then
 		local form  = GetShapeshiftFormID()
-		if c.eclipse and (form == MOONKIN_FORM or (form == nil and GetPrimaryTalentTree() == 1)) then
+		if c.eclipse and (form == MOONKIN_FORM or (form == nil and GetSpecialization() == 1)) then
 			local eclipse = EclipseBarFrame
 			takeoverFrame(player, totem, 0, "TOP", eclipse, "BOTTOM", 12, 8)
 		else

@@ -1636,6 +1636,7 @@ local PostUpdate = function(self, event)
 	end
 end
 
+local function noop() end
 local function LayoutOnce_OnUpdate(nameFrame)
 	nameFrame:SetScript("OnUpdate", nil)
 	local self = nameFrame:GetParent()
@@ -1643,7 +1644,12 @@ local function LayoutOnce_OnUpdate(nameFrame)
 	self.colors = Module.colors
 	self.PostUpdate = PostUpdate
 	self.Layout = Layout
+	-- Noop Layout's resize because we're supposed to have the correct size anyway at
+	-- this point. (Because this initial show can happen in combat.) If it's wrong, I
+	-- want it to fail; I don't want Layout to overwrite a bad size and obscure a bug.
+	self.SetSize = noop
 	self:Layout()
+	self.SetSize = nil
 	self:UpdateAllElements()
 end
 
@@ -1653,11 +1659,12 @@ local function MiniLayoutOnce_OnUpdate(_health)
 
 	self.colors = Module.colors
 	self.Layout = MiniLayout
+	self.SetSize = noop -- see comment in LayoutOnce_OnUpdate
 	self:Layout()
+	self.SetSize = nil
 	self:UpdateAllElements()
 end
 
-local function noop() end
 local Shared = function(self, unit, isSingle)
 	self.menu = menu
 	self:SetScript("OnEnter", UnitFrame_OnEnter)
@@ -1681,7 +1688,15 @@ local Shared = function(self, unit, isSingle)
 		self._health:SetScript("OnUpdate", MiniLayoutOnce_OnUpdate)
 	else
 		self.NameFrame = CreateBorderedChildFrame(self)
-		self.NameFrame:SetScript("OnUpdate", LayoutOnce_OnUpdate)
+		if unit == "player" then
+			-- Layout player frame immediately, so we can attach resources.
+			local ee = self.EnableElement
+			self.EnableElement = noop
+			LayoutOnce_OnUpdate(self.NameFrame)
+			self.EnableElement = ee
+		else
+			self.NameFrame:SetScript("OnUpdate", LayoutOnce_OnUpdate)
+		end
 	end
 end
 
