@@ -1688,7 +1688,15 @@ local Shared = function(self, unit, isSingle)
 		self._health:SetScript("OnUpdate", MiniLayoutOnce_OnUpdate)
 	else
 		self.NameFrame = CreateBorderedChildFrame(self)
-		self.NameFrame:SetScript("OnUpdate", LayoutOnce_OnUpdate)
+		if unit == "player" then
+			-- Layout player frame immediately, so we can attach resources.
+			local ee = self.EnableElement
+			self.EnableElement = noop
+			LayoutOnce_OnUpdate(self.NameFrame)
+			self.EnableElement = ee
+		else
+			self.NameFrame:SetScript("OnUpdate", LayoutOnce_OnUpdate)
+		end
 	end
 end
 
